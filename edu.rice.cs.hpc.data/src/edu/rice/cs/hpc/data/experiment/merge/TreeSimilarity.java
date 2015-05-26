@@ -241,7 +241,7 @@ public class TreeSimilarity {
 									// remove the attribution cost of the kid from the parent
 									// in theory, we do not need this since we consider the parent is merged if the kid is merged.
 									parent = candidate.source.getParentScope();
-									disseminateMetric(parent, candidate.source, 0, parent.getMetricValues().length);
+									disseminateMetric(parent, candidate.source, 0, parent.getMetricValues().size());
 
 									// the kid matches with an inlined code. let's mark the parent to be merged as well
 									parent.incrementCounter();
