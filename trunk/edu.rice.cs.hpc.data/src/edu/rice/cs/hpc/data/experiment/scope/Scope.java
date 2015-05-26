@@ -21,8 +21,9 @@ import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.BaseExperimentWithMetrics;
 import edu.rice.cs.hpc.data.experiment.metric.AggregateMetric;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
-import edu.rice.cs.hpc.data.experiment.metric.DerivedMetric;
+import edu.rice.cs.hpc.data.experiment.metric.IMetricValueCollection;
 import edu.rice.cs.hpc.data.experiment.metric.MetricValue;
+import edu.rice.cs.hpc.data.experiment.metric.version2.MetricValueCollection2;
 import edu.rice.cs.hpc.data.experiment.scope.filters.MetricValuePropagationFilter;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.FilterScopeVisitor;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
@@ -77,8 +78,8 @@ protected int firstLineNumber;
 protected int lastLineNumber;
 
 /** The metric values associated with this scope. */
-private MetricValue[] metrics;
-private MetricValue[] combinedMetrics;
+private IMetricValueCollection metrics;
+private IMetricValueCollection combinedMetrics;
 
 /** source citation */
 protected String srcCitation;
@@ -491,7 +492,7 @@ public boolean hasMetrics()
 
 public boolean hasNonzeroMetrics() {
 	if (this.hasMetrics())
-		for (int i = 0; i< this.metrics.length; i++) {
+		for (int i = 0; i< metrics.size(); i++) {
 			MetricValue m = this.getMetricValue(i);
 			if (!MetricValue.isZero(m))
 				return true;
@@ -546,9 +547,9 @@ public MetricValue getMetricValue(BaseMetric metric)
 public MetricValue getMetricValue(int index)
 {
 	MetricValue value;
-        if(this.metrics != null && index < this.metrics.length)
+        if(metrics != null && index < metrics.size())
            {
-                value = this.metrics[index];
+                value = metrics.getValue(index);
            }
         else
                 value = MetricValue.NONE;
@@ -563,7 +564,7 @@ public MetricValue getMetricValue(int index)
 public void setMetricValue(int index, MetricValue value)
 {
 	ensureMetricStorage();
-	this.metrics[index] = value;
+	metrics.setValue(index, value);
 }
 
 /*************************************************************************
@@ -595,12 +596,13 @@ public void accumulateMetric(Scope source, int src_i, int targ_i, MetricValuePro
 private void accumulateMetricValue(int index, double value)
 {
 	ensureMetricStorage();
-	if (index >= this.metrics.length) 
+	if (index >= metrics.size()) 
 		return;
 
-	MetricValue m = this.metrics[index];
+	MetricValue m = metrics.getValue(index);
 	if (m == MetricValue.NONE) {
-		this.metrics[index] = new MetricValue(value);
+		MetricValue mv = new MetricValue(value);
+		metrics.setValue(index, mv);
 	} else {
 		// TODO Could do non-additive accumulations here?
 		MetricValue.setValue(m, MetricValue.getValue(m) + value);
@@ -617,10 +619,10 @@ public void backupMetricValues() {
 	if (!(experiment instanceof BaseExperimentWithMetrics))
 		return;
 	
-	this.combinedMetrics = new MetricValue[this.metrics.length];
+	combinedMetrics = new MetricValueCollection2(metrics.size());
 	
-	for(int i=0; i<this.metrics.length; i++) {
-		MetricValue value = this.metrics[i];
+	for(int i=0; i<metrics.size(); i++) {
+		MetricValue value = metrics.getValue(i);
 		BaseMetric metric = ((BaseExperimentWithMetrics)this.experiment).getMetric(i);
 		
 		//------------------------------------------------------------------
@@ -632,15 +634,11 @@ public void backupMetricValues() {
 			// derived incremental metric type needs special treatment: 
 			//	their value changes in finalization phase, while others don't
 			//----------------------------------------------------------------------
-			if (metric instanceof AggregateMetric)
-				this.combinedMetrics[i] = 
-					new MetricValue(MetricValue.getValue(value), 
-							MetricValue.getAnnotationValue(value));
-			else 
-				this.combinedMetrics[i] = value;
-		} else {
-			// the metric has no value available
-			this.combinedMetrics[i] = MetricValue.NONE;
+			if (metric instanceof AggregateMetric) {
+				combinedMetrics.setValue(i, value.duplicate());
+			} else {
+				combinedMetrics.setValue(i, value);
+			}
 		}
 	}
 }
@@ -649,7 +647,7 @@ public void backupMetricValues() {
  * retrieve the default metrics
  * @return
  */
-public MetricValue[] getMetricValues() {
+public IMetricValueCollection getMetricValues() {
 	return this.metrics;
 }
 
@@ -657,7 +655,7 @@ public MetricValue[] getMetricValues() {
  * set the default metrics
  * @param values
  */
-public void setMetricValues(MetricValue values[]) {	
+public void setMetricValues(IMetricValueCollection values) {	
 	this.metrics = values;
 }
 
@@ -666,29 +664,23 @@ public void setMetricValues(MetricValue values[]) {
  * retrieve the backup metrics
  * @return
  ***************************************************************************/
-public MetricValue[] getCombinedValues() {
+public IMetricValueCollection getCombinedValues() {
 	
 	assert (this.isExperimentHasMetrics());
 	
-	final BaseExperimentWithMetrics _exp = (BaseExperimentWithMetrics) experiment;
-	MetricValue [] values = new MetricValue[_exp.getMetricCount()];
-	//boolean printed = false;
-
-	for (int i=0; i<values.length; i++) {
-		BaseMetric m = _exp.getMetric(i);
+	final BaseExperimentWithMetrics exp = (BaseExperimentWithMetrics) experiment;
+	IMetricValueCollection values = new MetricValueCollection2(exp.getMetricCount());
+	
+	for (int i=0; i<exp.getMetricCount(); i++) {
+		BaseMetric m = exp.getMetric(i);
 		if (m instanceof AggregateMetric) {
 			if (this.combinedMetrics == null) {
-				/*if (!printed) {
-					System.err.println("scope: " + this + "\t(" + this.getClass() + ") has no backup metrics.");
-					printed = true;
-				}*/
-				values[i] = this.metrics[i];
-			} else 
-				values[i] = this.combinedMetrics[i];
-		} else if (m instanceof DerivedMetric) {
-			values[i] = MetricValue.NONE;
+				values.setValue(i, metrics.getValue(i));
+			} else {
+				values.setValue(i, combinedMetrics.getValue(i));
+			}
 		} else {
-			values[i] = this.metrics[i];
+			values.setValue(i, metrics.getValue(i));
 		}
 	}
 	return values;
@@ -749,39 +741,21 @@ protected void ensureMetricStorage()
 	assert (this.isExperimentHasMetrics());
 
 	final BaseExperimentWithMetrics _exp = (BaseExperimentWithMetrics) experiment;
-
-	if(this.metrics == null)
-		this.metrics = this.makeMetricValueArray();
-	// Expand if metrics not as big as experiment's (latest) metricCount
-	if(this.metrics.length < _exp.getMetricCount()) {
-		MetricValue[] newMetrics = this.makeMetricValueArray();
-		for(int i=0; i<this.metrics.length; i++)
-			newMetrics[i] = metrics[i];
-		this.metrics = newMetrics;
+	int metric_size = _exp.getMetricCount();
+	if (metrics == null)
+	{
+		metrics = new MetricValueCollection2(metric_size);
+	} else {
+		if (metrics.size() < metric_size) {
+			IMetricValueCollection metrics_tmp = new MetricValueCollection2(metric_size);
+			for(int i=0; i<metrics.size(); i++)
+			{
+				metrics_tmp.setValue(i, metrics.getValue(i));
+			}
+			metrics = metrics_tmp;
+		}
 	}
 }
-
-
-
-
-/*************************************************************************
- *	Gives the scope object storage for its metric values.
- ************************************************************************/
-	
-private MetricValue[] makeMetricValueArray()
-{
-	
-	assert (this.isExperimentHasMetrics());
-
-	final BaseExperimentWithMetrics _exp = (BaseExperimentWithMetrics) experiment;
-	final int metricsNeeded= _exp.getMetricCount();
-
-	MetricValue[] array = new MetricValue[metricsNeeded];
-	for(int k = 0; k < metricsNeeded; k++)
-		array[k] = MetricValue.NONE;
-	return array;
-}
-
 
 
 /*************************************************************************
@@ -795,9 +769,9 @@ public void copyMetrics(Scope targetScope, int offset) {
 		return;
 	
 	targetScope.ensureMetricStorage();
-	for (int k=0; k<this.metrics.length && k<targetScope.metrics.length; k++) {
+	for (int k=0; k<metrics.size() && k<targetScope.metrics.size(); k++) {
 		MetricValue mine = null;
-		MetricValue crtMetric = this.metrics[k];
+		MetricValue crtMetric = metrics.getValue(k);
 
 		if ( MetricValue.isAvailable(crtMetric) && MetricValue.getValue(crtMetric) != 0.0) { // there is something to copy
 			mine = new MetricValue();
@@ -809,7 +783,7 @@ public void copyMetrics(Scope targetScope, int offset) {
 		} else {
 			mine = MetricValue.NONE;
 		}
-		targetScope.metrics[k+offset] = mine;
+		targetScope.metrics.setValue(k+offset, mine);
 	}
 }
 

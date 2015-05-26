@@ -3,6 +3,7 @@ package edu.rice.cs.hpc.data.experiment.scope.visitors;
 import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
+import edu.rice.cs.hpc.data.experiment.metric.IMetricValueCollection;
 import edu.rice.cs.hpc.data.experiment.metric.MetricType;
 import edu.rice.cs.hpc.data.experiment.metric.MetricValue;
 import edu.rice.cs.hpc.data.experiment.scope.CallSiteScope;
@@ -36,7 +37,7 @@ import edu.rice.cs.hpc.data.filter.IFilterData;
 public class FilterScopeVisitor implements IScopeVisitor 
 {
 	private final IFilterData filter;
-	private final MetricValue []rootMetricValues;
+	private final IMetricValueCollection rootMetricValues;
 	private final BaseExperiment experiment;
 	private BaseMetric []metrics = null;
 	
@@ -213,7 +214,7 @@ public class FilterScopeVisitor implements IScopeVisitor
 	private void mergeMetrics(Scope parent, Scope child, boolean exclusive_filter)
 	{
 		// we need to merge the metric values
-		MetricValue []values = child.getMetricValues();
+		IMetricValueCollection values = child.getMetricValues();
 		for (int i=0; i<metrics.length; i++)
 		{
 			if (exclusive_filter && metrics[i].getMetricType() == MetricType.EXCLUSIVE)
@@ -222,7 +223,7 @@ public class FilterScopeVisitor implements IScopeVisitor
 				parent.setMetricValue(i, value);
 				
 				// exclusive filter: merge the exclusive metrics to the parent's exclusive
-				mergeMetricToParent(parent, i, values[i]);
+				mergeMetricToParent(parent, i, values.getValue(i));
 				
 			} else if (!exclusive_filter && metrics[i].getMetricType() == MetricType.INCLUSIVE)
 			{
@@ -233,7 +234,7 @@ public class FilterScopeVisitor implements IScopeVisitor
 				// however, when we ask getMetric(), it requires the metric index in the array (which is 0..n)
 				// we can cheat this by converting the index into "short name" and get the metric.
 				BaseMetric metric_exc = ((Experiment)experiment).getMetric(String.valueOf(index_exclusive_metric));
-				mergeMetricToParent(parent, metric_exc.getIndex(), values[i]);
+				mergeMetricToParent(parent, metric_exc.getIndex(), values.getValue(i));
 			}
 		}
 	}
@@ -257,7 +258,7 @@ public class FilterScopeVisitor implements IScopeVisitor
 		}
 		// update the filtered value
 		value             += mvChild.getValue();
-		float rootValue   = rootMetricValues[metric_exclusive_index].getValue();
+		float rootValue   = rootMetricValues.getValue(metric_exclusive_index).getValue();
 		float annotation  = value / rootValue;
 		
 		MetricValue mv    = new MetricValue(value, annotation);
