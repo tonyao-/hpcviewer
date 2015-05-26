@@ -4,25 +4,45 @@ import java.io.File;
 import java.io.IOException;
 
 import edu.rice.cs.hpc.data.db.DataThread;
+import edu.rice.cs.hpc.data.experiment.extdata.FileDB2;
 import edu.rice.cs.hpc.data.experiment.extdata.IFileDB;
 
+/********************************************************************
+ * 
+ * Class to manage access to extended database file
+ * This class uses a compact version of database format (version 3)
+ * and not compatible with the old one.<br/>
+ * See {@link FileDB2} for accessing the older format
+ *
+ ********************************************************************/
 public class FileDB3 implements IFileDB 
 {
-	DataTrace dataTrace;
-	DataThread dataThread;
+	private DataTrace dataTrace;
+	private DataThread dataThread;
 	
-	public FileDB3()
-	{
-		
-	}
 	
 	@Override
 	@Deprecated
+	/****
+	 * @deprecated method to open a database file 
+	 * 
+	 * {@link open(String)}
+	 * @see edu.rice.cs.hpc.data.experiment.extdata.IFileDB#open(java.lang.String, int, int)
+	 */
 	public void open(String filename, int headerSize, int recordSize)
 			throws IOException 
 	{
+		File file  = new File(filename);
+		String dir = file.getParent();
+		open(dir);
 	}
 	
+	/***
+	 * Method to open files of trace database such as trace.db and threads.db
+	 * 
+	 * @param directory
+	 * @throws IOException
+	 */
 	public void open(String directory) throws IOException
 	{
 		String filename = directory + File.separatorChar + "trace.db";

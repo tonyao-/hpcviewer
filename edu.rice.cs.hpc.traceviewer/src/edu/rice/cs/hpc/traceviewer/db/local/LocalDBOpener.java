@@ -36,8 +36,7 @@ public class LocalDBOpener extends AbstractDBOpener
 	{
 		this.directory = info.getDatabasePath();
 		version = LocalDBOpener.directoryHasTraceData(directory); 
-		if (version>0) {
-		} else {
+		if (version<=0) {
 			throw new Exception("The directory does not contain hpctoolkit database with trace data:"
 					+ directory);
 		}
@@ -146,8 +145,6 @@ public class LocalDBOpener extends AbstractDBOpener
 
 	@Override
 	public void end() {
-		// TODO Auto-generated method stub
-		
 	}	
 }
 

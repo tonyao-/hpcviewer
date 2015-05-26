@@ -24,10 +24,11 @@ import edu.rice.cs.hpc.traceviewer.data.db.DataRecord;
  *******************************************************************************/
 public class DataTrace extends DataCommon 
 {
-	private final static String TRACE_NAME = "hpctoolkit trace metrics";
-	static final private int RECORD_INDEX_SIZE = Constants.SIZEOF_LONG + 
+	final static private String TRACE_NAME = "hpctoolkit trace metrics";
+	final static private int RECORD_INDEX_SIZE = Constants.SIZEOF_LONG + 
 										Constants.SIZEOF_LONG + Constants.SIZEOF_LONG;
-	static final private int RECORD_ENTRY_SIZE = Constants.SIZEOF_LONG + Constants.SIZEOF_INT;
+	final static private int RECORD_ENTRY_SIZE = Constants.SIZEOF_LONG + Constants.SIZEOF_INT;
+	final static private int TRACE_HEADER_SIZE = 256;
 	
 	long index_start, index_length;
 	long trace_start, trace_length;
@@ -44,10 +45,13 @@ public class DataTrace extends DataCommon
 	private long []table_length;
 	private long []table_global_tid;
 	
-	public DataTrace() {
-	}
+
 
 	@Override
+	/*
+	 * (non-Javadoc)
+	 * @see edu.rice.cs.hpc.data.db.DataCommon#open(java.lang.String)
+	 */
 	public void open(final String file)
 			throws IOException
 	{
@@ -69,20 +73,35 @@ public class DataTrace extends DataCommon
 	}
 
 	@Override
+	/*
+	 * (non-Javadoc)
+	 * @see edu.rice.cs.hpc.data.db.DataCommon#isTypeFormatCorrect(long)
+	 */
 	protected boolean isTypeFormatCorrect(long type) {
 		return type == 2;
 	}
 
 	@Override
+	/*
+	 * (non-Javadoc)
+	 * @see edu.rice.cs.hpc.data.db.DataCommon#isFileHeaderCorrect(java.lang.String)
+	 */
 	protected boolean isFileHeaderCorrect(String header) {
 		return header.compareTo(TRACE_NAME) >= 0;
 	}
 
 	@Override
+	/*
+	 * (non-Javadoc)
+	 * @see edu.rice.cs.hpc.data.db.DataCommon#readNextHeader(java.nio.channels.FileChannel)
+	 */
 	protected boolean readNextHeader(FileChannel input)
 			throws IOException
 	{
-		ByteBuffer buffer = ByteBuffer.allocate(256);
+		// -------------------------------------------------
+		// reading the next 256 byte header
+		// -------------------------------------------------
+		ByteBuffer buffer = ByteBuffer.allocate(TRACE_HEADER_SIZE);
 		int numBytes      = input.read(buffer);
 		if (numBytes > 0) 
 		{
@@ -103,7 +122,7 @@ public class DataTrace extends DataCommon
 			size_time   = buffer.getInt();
 			size_cctid  = buffer.getInt();
 			
-			// we cannot afford if the size of cct is not integer
+			// FIXME: At the moment we cannot afford if the size of cct is not integer
 			if (size_cctid != 4)
 			{
 				throw new IOException("The size of CCT is not supported: " + size_cctid);
@@ -145,14 +164,26 @@ public class DataTrace extends DataCommon
 		return null;
 	}
 	
+	/***
+	 * Retrieve the number of samples of a given ranks
+	 * 
+	 * @param rank
+	 * @return int the number of samples
+	 */
 	public int getNumberOfSamples(int rank)
 	{
 		return (int) (table_length[rank] / RECORD_ENTRY_SIZE);
 	}
 	
+	/****
+	 * Retrieve the number of ranks (either processes or threads or both)
+	 * in the current data traces
+	 * 
+	 * @return
+	 */
 	public int getNumberOfRanks()
 	{
-		return table_offset.length;
+		return (int) num_threads;
 	}
 	
 	public long []getOffsets()
@@ -161,6 +192,10 @@ public class DataTrace extends DataCommon
 	}
 	
 	@Override
+	/*
+	 * (non-Javadoc)
+	 * @see edu.rice.cs.hpc.data.db.DataCommon#printInfo(java.io.PrintStream)
+	 */
 	public void printInfo( PrintStream out)
 	{
 		super.printInfo(out);
@@ -209,18 +244,44 @@ public class DataTrace extends DataCommon
 	// --------------------------------------------------------------------
 	// For the sake of compatibility, we need to provide these methods
 	// --------------------------------------------------------------------
+	/****
+	 * @deprecated method to get a 8 byte long from a given file absolute location
+	 * This method is to be replaced with {@link getSampledData}
+	 * 
+	 * @param position : absolute location of the file
+	 * @return
+	 * @throws IOException
+	 */
+	@Deprecated
 	public long getLong(long position) throws IOException
 	{
 		file.seek(position);
 		return file.readLong();
 	}
 	
+	@Deprecated
+	/*****
+	 * method to get a 4 byte integer from an absolute position
+	 * This method is to be replaced with {@link getSampledData}
+	 * 
+	 * @param position
+	 * @return
+	 * @throws IOException
+	 */
 	public int getInt(long position) throws IOException
 	{
 		file.seek(position);
 		return file.readInt();
 	}
 	
+	/**
+	 * @deprecated method to get a 8 byte double from an absolute position
+	 * This method is to be replaced with {@link getSampledData}
+	 * 
+	 * @param position
+	 * @return
+	 * @throws IOException
+	 */
 	public double getDouble(long position) throws IOException
 	{
 		MappedByteBuffer mbb = channel.map(MapMode.READ_ONLY, position, Constants.SIZEOF_LONG);
