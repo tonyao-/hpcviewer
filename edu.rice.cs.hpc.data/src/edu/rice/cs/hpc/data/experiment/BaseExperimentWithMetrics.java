@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.List;
 
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
+import edu.rice.cs.hpc.data.experiment.metric.IMetricValueCollection;
+import edu.rice.cs.hpc.data.experiment.metric.version2.MetricValueCollection2;
+import edu.rice.cs.hpc.data.experiment.metric.version3.MetricValueCollection3;
 
 
 /****************************************************************************
@@ -72,6 +75,7 @@ public abstract class BaseExperimentWithMetrics extends BaseExperiment
 		}
 		return null;	
 	}
+	
 
 	//////////////////////////////////////////////////////////////////////////
 	//ACCESS TO SEARCH PATH												    //

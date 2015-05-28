@@ -103,7 +103,7 @@ public class DataThread extends DataCommon
 		
 		out.println("\nTitle:");
 		if (message_title != null)
-			for(String title: this.message_title)
+			for(String title: message_title)
 			{
 				out.println("\t" + title);
 			}
@@ -147,12 +147,17 @@ public class DataThread extends DataCommon
 		channel.close();
 	}
 
-	static public void main(String []main)
+	static public void main(String []argv)
 	{
-		DataThread data = new DataThread();
-		
+		final DataThread data = new DataThread();
+		String filename;
+		if (argv != null && argv.length>0) {
+			filename = argv[0];
+		} else {
+			filename = "/home/la5/data/new-database/db-lulesh-new/threads.db"; 
+		}
 		try {
-			data.open("/home/la5/data/new-database/db-lulesh-new/threads.db");
+			data.open(filename);
 			data.printInfo(System.out);
 			data.dispose();
 		} catch (IOException e) {

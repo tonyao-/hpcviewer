@@ -27,7 +27,7 @@ public class DataTrace extends DataCommon
 	final static private String TRACE_NAME = "hpctoolkit trace metrics";
 	final static private int RECORD_INDEX_SIZE = Constants.SIZEOF_LONG + 
 										Constants.SIZEOF_LONG + Constants.SIZEOF_LONG;
-	final static private int RECORD_ENTRY_SIZE = Constants.SIZEOF_LONG + Constants.SIZEOF_INT;
+	final static public int RECORD_ENTRY_SIZE = Constants.SIZEOF_LONG + Constants.SIZEOF_INT;
 	final static private int TRACE_HEADER_SIZE = 256;
 	
 	long index_start, index_length;
@@ -191,6 +191,16 @@ public class DataTrace extends DataCommon
 		return table_offset;
 	}
 	
+	public long getLength(int rank)
+	{
+		return table_length[rank];
+	}
+	
+	public long getOffset(int rank)
+	{
+		return table_offset[rank];
+	}
+	
 	@Override
 	/*
 	 * (non-Javadoc)
@@ -218,9 +228,11 @@ public class DataTrace extends DataCommon
 			out.format(" %d. %05x : %04x\n", table_global_tid[i], table_offset[i], table_length[i]);
 		}
 		Random r = new Random();
+		int nranks = getNumberOfRanks();
+		
 		for(int i=0; i< 10; i++)
 		{
-			int rank = r.nextInt(getNumberOfRanks()-1);
+			int rank = (nranks>1 ? r.nextInt(nranks-1) : 0);
 			int numsamples = getNumberOfSamples(rank);
 			int sample = r.nextInt(numsamples);
 			try {
@@ -248,12 +260,17 @@ public class DataTrace extends DataCommon
 	 * @deprecated method to get a 8 byte long from a given file absolute location
 	 * This method is to be replaced with {@link getSampledData}
 	 * 
+	 * <p> At the moment, the implementation of this method requires a mutual exclusive
+	 * to the file (synchronized). It is then important this method to be executed 
+	 * as fast as possible and let the caller to handle the execution and all
+	 * checking and verification.</p>
+	 * 
 	 * @param position : absolute location of the file
 	 * @return
 	 * @throws IOException
 	 */
 	@Deprecated
-	public long getLong(long position) throws IOException
+	synchronized public long getLong(long position) throws IOException
 	{
 		file.seek(position);
 		return file.readLong();
@@ -264,11 +281,16 @@ public class DataTrace extends DataCommon
 	 * method to get a 4 byte integer from an absolute position
 	 * This method is to be replaced with {@link getSampledData}
 	 * 
+	 * <p> At the moment, the implementation of this method requires a mutual exclusive
+	 * to the file (synchronized). It is then important this method to be executed 
+	 * as fast as possible and let the caller to handle the execution and all
+	 * checking and verification.</p>
+	 *  
 	 * @param position
 	 * @return
 	 * @throws IOException
 	 */
-	public int getInt(long position) throws IOException
+	synchronized public int getInt(long position) throws IOException
 	{
 		file.seek(position);
 		return file.readInt();
@@ -278,11 +300,16 @@ public class DataTrace extends DataCommon
 	 * @deprecated method to get a 8 byte double from an absolute position
 	 * This method is to be replaced with {@link getSampledData}
 	 * 
+	 * <p> At the moment, the implementation of this method requires a mutual exclusive
+	 * to the file (synchronized). It is then important this method to be executed 
+	 * as fast as possible and let the caller to handle the execution and all
+	 * checking and verification.</p>
+	 * 
 	 * @param position
 	 * @return
 	 * @throws IOException
 	 */
-	public double getDouble(long position) throws IOException
+	synchronized public double getDouble(long position) throws IOException
 	{
 		MappedByteBuffer mbb = channel.map(MapMode.READ_ONLY, position, Constants.SIZEOF_LONG);
 		LongBuffer lb = mbb.asLongBuffer();
@@ -332,9 +359,16 @@ public class DataTrace extends DataCommon
 	 ***************************/
 	public static void main(String []argv)
 	{
-		DataTrace trace_data = new DataTrace();
+		final DataTrace trace_data = new DataTrace();
+		final String filename;
+		if (argv != null && argv.length>0) 
+		{
+			filename = argv[0];
+		} else {
+			filename = "/home/la5/data/new-database/db-lulesh-new/trace.db";
+		}
 		try {
-			trace_data.open("/home/la5/data/new-database/db-lulesh-new/trace.db");			
+			trace_data.open(filename);			
 			trace_data.printInfo(System.out);
 			trace_data.dispose();
 			

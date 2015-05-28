@@ -249,9 +249,6 @@ public abstract class SpaceTimeDataController
 	}
 	
 	
-	public void setTraceAttributes(ImageTraceAttributes attributes) {
-		this.attributes = attributes;
-	}
 
 	public ImageTraceAttributes getAttributes() {
 		return attributes;

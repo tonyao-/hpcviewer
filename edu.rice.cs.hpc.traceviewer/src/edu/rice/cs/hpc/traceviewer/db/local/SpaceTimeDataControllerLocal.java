@@ -17,6 +17,7 @@ import edu.rice.cs.hpc.traceviewer.data.db.TraceDataByRank;
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
 import edu.rice.cs.hpc.traceviewer.data.version2.BaseData;
 import edu.rice.cs.hpc.traceviewer.data.version2.FilteredBaseData;
+import edu.rice.cs.hpc.traceviewer.data.version3.FileDB3;
 import edu.rice.cs.hpc.traceviewer.spaceTimeData.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.util.TraceProgressReport;
 
@@ -53,14 +54,15 @@ public class SpaceTimeDataControllerLocal extends SpaceTimeDataController
 		if (version == 2)
 		{	// original format
 			traceFilePath = getTraceFile(exp.getDefaultDirectory().getAbsolutePath(), statusMgr);
+			fileDB.open(traceFilePath, trAttribute.dbHeaderSize, RECORD_SIZE);
 			
 		} else if (version == 3) 
 		{
 			// new format
 			traceFilePath = exp.getDefaultDirectory() + File.separator + exp.getDbFilename(BaseExperiment.Db_File_Type.DB_TRACE);
+			((FileDB3)fileDB).open(databaseDirectory);
 		}
 		this.fileDB = fileDB;
-		this.fileDB.open(traceFilePath, trAttribute.dbHeaderSize, RECORD_SIZE);
 		dataTrace 	= new BaseData(fileDB);
 	}
 

@@ -65,6 +65,7 @@ abstract public class DataCommon
 	 */
 	public void printInfo( PrintStream out)
 	{
+		out.println("Filename: "	+ filename);
 		out.println("Format: "      + format);
 		out.println("Num threads: " + num_threads);
 		out.println("Num cctid: "   + num_cctid);
