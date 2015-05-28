@@ -1,5 +1,5 @@
 
-package edu.rice.cs.hpc.viewer.db;
+package edu.rice.cs.hpc.data.experiment.metric.version3;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -135,7 +135,7 @@ public class DataSummary extends DataCommon
 		int offset_size    = (int) (cct_table[cct_id+1] - cct_table[cct_id]);
 		
 		if (offset_size<=0)
-			return (float)DEFAULT_METRIC;
+			return DEFAULT_METRIC;
 		
 		long file_length   = file.length();
 		// make sure the offset is within the file range
@@ -245,7 +245,13 @@ public class DataSummary extends DataCommon
 	 ***************************/
 	public static void main(String []argv)
 	{
-		final String filename = "/home/la5/data/new-database/db-lulesh-new/summary.db";
+		final String DEFAULT_FILE = "/home/la5/data/new-database/db-lulesh-new/summary.db";
+		final String filename;
+		if (argv != null && argv.length>0)
+			filename = argv[0];
+		else
+			filename = DEFAULT_FILE;
+		
 		final DataSummary summary_data = new DataSummary();
 		try {
 			summary_data.open(filename);			

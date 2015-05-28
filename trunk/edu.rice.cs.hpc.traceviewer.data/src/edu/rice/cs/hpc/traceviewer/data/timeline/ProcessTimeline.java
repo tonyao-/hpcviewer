@@ -110,12 +110,10 @@ public class ProcessTimeline {
 
 		CallPath cp = scopeMap.get(cpid);
 		if (cp == null && sample > 0) {
-			System.err.println("ERROR: No sample found for cpid " + cpid
-					+ " in trace sample: " + sample);
-			System.err
-					.println("\tThere was most likely an error in the data collection; the display may be inaccurate.");
+			System.err.println("[" + processNumber +"] ERROR: No callpath for cpid " + cpid
+					+ " in sample: " + sample);
 		}
-		return cp;
+ 		return cp;
 	}
 /**
  * Fills this one with the data from another

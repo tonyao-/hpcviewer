@@ -21,14 +21,15 @@ public class FileDB3 implements IFileDB
 	private DataThread dataThread;
 	
 	
-	@Override
-	@Deprecated
 	/****
-	 * @deprecated method to open a database file 
+	 * @deprecated method to open a database file.<br/>
+	 * We provide this method just for compatibility purpose. Please use
+	 * the recent method : 
 	 * 
 	 * {@link open(String)}
 	 * @see edu.rice.cs.hpc.data.experiment.extdata.IFileDB#open(java.lang.String, int, int)
 	 */
+	@Override
 	public void open(String filename, int headerSize, int recordSize)
 			throws IOException 
 	{
@@ -69,6 +70,7 @@ public class FileDB3 implements IFileDB
 		StringBuffer sbRank = new StringBuffer();
 		for (int i=0; i<num_ranks; i++)
 		{
+			sbRank.setLength(0);
 			for(int j=0; j<numLevels; j++)
 			{
 				sbRank.append( String.valueOf(ranks[i]) );
@@ -118,7 +120,7 @@ public class FileDB3 implements IFileDB
 
 	@Override
 	public long getMaxLoc(int rank) {
-		return getMinLoc(rank + 1);
+		return getMinLoc(rank) + dataTrace.getLength(rank) - DataTrace.RECORD_ENTRY_SIZE;
 	}
 
 	@Override
