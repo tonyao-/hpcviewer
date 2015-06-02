@@ -14,7 +14,6 @@
 
 package edu.rice.cs.hpc.data.experiment.scope;
 
-import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.scope.filters.MetricValuePropagationFilter;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.AbstractFinalizeMetricVisitor;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
@@ -64,10 +63,10 @@ final static public String INLINE_NOTATION = "[I] ";
  *	Creates a ProcedureScope.
  ************************************************************************/
 	
-public ProcedureScope(BaseExperiment experiment, SourceFile file, int first, int last, 
+public ProcedureScope(RootScope root, SourceFile file, int first, int last, 
 		String proc, boolean _isalien, int cct_id, int flat_id, IUserData<String,String> userData)
 {
-	super(experiment, file, first, last, cct_id, flat_id);
+	super(root, file, first, last, cct_id, flat_id);
 	this.isalien = _isalien;
 	this.procedureName = proc;
 
@@ -90,10 +89,10 @@ public ProcedureScope(BaseExperiment experiment, SourceFile file, int first, int
  * @param sid
  * @param _isalien
  */
-public ProcedureScope(BaseExperiment experiment, LoadModuleScope loadModule, SourceFile file, 
+public ProcedureScope(RootScope root, LoadModuleScope loadModule, SourceFile file, 
 		int first, int last, String proc, boolean _isalien, int cct_id, int flat_id, IUserData<String,String> userData)
 {
-	this(experiment, file, first, last,proc,_isalien, cct_id, flat_id, userData);
+	this(root, file, first, last,proc,_isalien, cct_id, flat_id, userData);
 	//this.iScopeID = sid;
 	this.objLoadModule = loadModule;
 }
@@ -135,7 +134,7 @@ public String getName()
  ************************************************************************/
 
 public Scope duplicate() {
-	return new ProcedureScope(this.experiment,
+	return new ProcedureScope(this.root,
 			this.objLoadModule,
 			this.sourceFile, 
 			this.firstLineNumber, 

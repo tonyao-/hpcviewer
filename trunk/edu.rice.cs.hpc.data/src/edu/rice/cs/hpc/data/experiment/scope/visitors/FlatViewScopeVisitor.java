@@ -34,7 +34,6 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 	private HashMap<String, FlatScopeInfo> htFlatScope;
 	private HashMap<String, Scope[]> htFlatCostAdded;
 	
-	private Experiment experiment;
 	private RootScope root_ft;
 	
 	private InclusiveOnlyMetricPropagationFilter inclusive_filter;
@@ -48,8 +47,6 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 	 * @param root: the root of the tree
 	 ******************************************************************/
 	public FlatViewScopeVisitor( Experiment exp, RootScope root) {
-		this.experiment = exp;
-		
 		this.htFlatLoadModuleScope = new Hashtable<Integer, LoadModuleScope>();
 		this.htFlatFileScope = new Hashtable<String, FileScope>();
 		this.htFlatScope     = new HashMap<String, FlatScopeInfo>();
@@ -190,6 +187,7 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 			// Initialize the flat scope of this cct
 			//-----------------------------------------------------------------------------
 			flat_info_s.flat_s = cct_s.duplicate();
+			flat_info_s.flat_s.setRootScope(root_ft);
 			
 			//-----------------------------------------------------------------------------
 			// Initialize the load module scope
@@ -234,6 +232,7 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 			if (lm_flat_s == null) {
 				// no load module has been created. we allocate a new one
 				lm_flat_s = (LoadModuleScope) lm.duplicate();
+				lm_flat_s.setRootScope(root_ft);
 				// attach the load module to the root scope
 				this.addToTree(root_ft, lm_flat_s);
 				// store this module into our dictionary
@@ -300,7 +299,7 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 	 *****************************************************************/
 	private FileScope createFileScope(SourceFile src_file, LoadModuleScope lm_s, String unique_file_id) {
 		int fileID = src_file.getFileID();
-		FileScope file_s =  new FileScope( this.experiment, src_file, fileID );
+		FileScope file_s =  new FileScope( this.root_ft, src_file, fileID );
 		//------------------------------------------------------------------------------
 		// if load module is undefined, then we attach the file scope to the root scope
 		//------------------------------------------------------------------------------

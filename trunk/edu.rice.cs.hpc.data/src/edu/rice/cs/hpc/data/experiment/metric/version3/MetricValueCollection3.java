@@ -2,33 +2,89 @@ package edu.rice.cs.hpc.data.experiment.metric.version3;
 
 import java.io.IOException;
 
+import edu.rice.cs.hpc.data.experiment.BaseExperimentWithMetrics;
+import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
+import edu.rice.cs.hpc.data.experiment.metric.DerivedMetric;
 import edu.rice.cs.hpc.data.experiment.metric.IMetricValueCollection;
 import edu.rice.cs.hpc.data.experiment.metric.MetricValue;
+import edu.rice.cs.hpc.data.experiment.scope.RootScope;
+import edu.rice.cs.hpc.data.experiment.scope.Scope;
 
+
+/******************************************************************
+ * 
+ * The implementation of {@link IMetricValueCollection} for 
+ * database version 3 (the compact version).
+ * 
+ * This class is designed to read metric values when needed.
+ * If the scope is never asked for metric value, no access to
+ * the database file will occur.
+ * 
+ * The current version is a draft implementation, it is not well
+ * optimized yet. 
+ *
+ ******************************************************************/
 public class MetricValueCollection3 implements IMetricValueCollection 
 {
 	final private DataSummary data;
-	final private int cct_index;
-	final private float []root_values;
+	final private Scope scope;
+	final private RootScope root;
+	private MetricValue []values;
 	
-	public MetricValueCollection3(DataSummary data, float []root_values, int cct_index) throws IOException
+	public MetricValueCollection3(DataSummary data, RootScope root, Scope scope) throws IOException
 	{
-		this.data 		 = data;
-		this.cct_index 	 = cct_index;
-		this.root_values = root_values;
+		this.data 	 = data;
+		this.scope 	 = scope;
+		this.root	 = root;
 	}
 	
 	@Override
-	public MetricValue getValue(int index) {
-		try {
-			float val = data.getMetric(cct_index, index);
-			if (val != DataSummary.DEFAULT_METRIC)
-			{
-				float percent = 100 * (val/root_values[index]);
-				return new MetricValue(val, percent);
+	public MetricValue getValue(int index) 
+	{
+		if (values == null)
+		{
+			// create and initialize the first metric values instance
+			BaseExperimentWithMetrics exp = (BaseExperimentWithMetrics) root.getExperiment();
+			int metric_size = exp.getMetricCount();
+			
+			// initialize
+			try {
+				values = data.getMetrics(scope.getCCTIndex(), exp);
+				if (values != null && values.length>0)
+				{
+					// compute the percent annotation
+					for(int i=0; i<metric_size; i++)
+					{
+						if (values[i] != MetricValue.NONE)
+						{
+							MetricValue mv = root.getMetricValue(i);
+							if (mv != MetricValue.NONE)
+							{
+								float percent = 100 * (values[i].getValue()/mv.getValue());
+								MetricValue.setAnnotationValue(values[i], percent);
+							}
+						}
+					}
+					return values[index];
+				}
+			} catch (IOException e1) {
+				e1.printStackTrace();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} else 
+		{
+			// metric values already exist
+			if (index < values.length) {
+				return values[index];
+			} else {
+				// metric values already exist, but the index is bigger than the standard values
+				// this must be a derived metric
+				BaseExperimentWithMetrics exp = (BaseExperimentWithMetrics) root.getExperiment();
+				BaseMetric metric = exp.getMetric(index);
+				if (metric instanceof DerivedMetric)
+				{
+					return ((DerivedMetric)metric).getValue(scope);
+				}
+			}
 		}
 		return MetricValue.NONE;
 	}
@@ -41,17 +97,27 @@ public class MetricValueCollection3 implements IMetricValueCollection
 
 	@Override
 	public void setValue(int index, MetricValue value) {
-		System.err.println("setValue unsupported");
+		// forcing to create metric values
+		getValue(index);
+		if (values != null) {
+			// If the index is out of array bound, it means we want to add a new derived metric.
+			// We will compute the derived value on the fly instead of storing it.
+			if (index < values.length) {
+				values[index]  = value;
+			}
+		}
 	}
 
 	@Override
 	public void setAnnotation(int index, float ann) {
-		System.err.println("setAnnotation unsupported");
+		MetricValue value = getValue(index);
+		MetricValue.setAnnotationValue(value, ann);
 	}
 
 	@Override
 	public boolean isValueAvailable(int index) {
-		return getValue(index) == MetricValue.NONE;
+		MetricValue value = getValue(index);
+		return MetricValue.isAvailable(value);
 	}
 
 	@Override
@@ -62,7 +128,8 @@ public class MetricValueCollection3 implements IMetricValueCollection
 
 	@Override
 	public int size() {
-		return root_values.length;
+		BaseExperimentWithMetrics exp = (BaseExperimentWithMetrics) root.getExperiment();
+		return exp.getMetricCount();
 	}
 
 	@Override

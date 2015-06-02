@@ -31,7 +31,7 @@ public abstract class BaseDuplicateScopeTreesVisitor implements IScopeVisitor {
 	//----------------------------------------------------
 	public void visit(RootScope scope, 				ScopeVisitType vt) { 
 		if (scope.getType() != RootScopeType.Invisible)	
-			mergeInsert(scope, vt);
+			 mergeInsert(scope, vt);
 	}
 	public void visit(LoadModuleScope scope, 		ScopeVisitType vt) { mergeInsert(scope, vt); }
 	public void visit(FileScope scope, 				ScopeVisitType vt) { mergeInsert(scope, vt); }
@@ -44,9 +44,9 @@ public abstract class BaseDuplicateScopeTreesVisitor implements IScopeVisitor {
 	public void visit(LineScope scope, 				ScopeVisitType vt) { mergeInsert(scope, vt); }
 
 	
-	private void mergeInsert(Scope scope, ScopeVisitType vt) {
+	private Scope mergeInsert(Scope scope, ScopeVisitType vt) {
 		if (!scope.isCounterZero())
-			return;
+			return null;
 		
 		if (vt == ScopeVisitType.PreVisit) {
 			Scope newParent = scopeStack.peek();
@@ -55,10 +55,10 @@ public abstract class BaseDuplicateScopeTreesVisitor implements IScopeVisitor {
 			
 			Scope newKid = this.addMetricColumns(newParent, kid, scope);
 			
-			scopeStack.push(newKid);
+			return scopeStack.push(newKid);
 			
 		} else { // PostVisit
-			scopeStack.pop();
+			return scopeStack.pop();
 		}
 	}
 
@@ -79,11 +79,13 @@ public abstract class BaseDuplicateScopeTreesVisitor implements IScopeVisitor {
 			parent.addSubscope(target);
 			target.setParentScope(parent);
 			
-			target.setExperiment(parent.getExperiment());
-			
-			if (target instanceof CallSiteScope) {
-				((CallSiteScope)target).getLineScope().setExperiment(parent.getExperiment());
-				((CallSiteScope)target).getProcedureScope().setExperiment(parent.getExperiment());
+			if (target instanceof RootScope)
+			{
+				target.setRootScope((RootScope) target);
+				((RootScope)target).setExperiment(parent.getExperiment());
+			} else 
+			{
+				target.setRootScope(parent.getRootScope());
 			}
 		} // else match! just copy source's metrics over to target
 		

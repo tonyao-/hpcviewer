@@ -13,8 +13,6 @@ import org.eclipse.swt.widgets.CoolBar;
 import edu.rice.cs.hpc.data.experiment.scope.CallSiteScope;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.viewer.scope.ScopeViewActions;
-import edu.rice.cs.hpc.viewer.scope.ScopeViewActions.ActionType;
-import edu.rice.cs.hpc.viewer.scope.ScopeViewActions.IActionType;
 
 /**
  * @author laksonoadhianto
@@ -71,7 +69,7 @@ public class FlatScopeViewActions extends ScopeViewActions {
 		// copy the "root" of the current input
 		// -------------------------------------------------------------------
 		Scope objFlattenedNode = (objParentNode.duplicate());
-		objFlattenedNode.setExperiment( objParentNode.getExperiment() );
+		//objFlattenedNode.setExperiment( objParentNode.getExperiment() );
 		objParentNode.copyMetrics(objFlattenedNode, 0);
 		
 		boolean hasKids = false;

@@ -51,7 +51,7 @@ public class SpaceTimeDataControllerLocal extends SpaceTimeDataController
 		
 		final TraceAttribute trAttribute = exp.getTraceAttribute();		
 		final int version = exp.getMajorVersion();
-		if (version == 2)
+		if (version == 1 || version == 2)
 		{	// original format
 			traceFilePath = getTraceFile(exp.getDefaultDirectory().getAbsolutePath(), statusMgr);
 			fileDB.open(traceFilePath, trAttribute.dbHeaderSize, RECORD_SIZE);

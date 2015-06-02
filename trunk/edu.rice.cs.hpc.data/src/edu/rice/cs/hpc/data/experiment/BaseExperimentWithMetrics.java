@@ -4,9 +4,6 @@ import java.io.File;
 import java.util.List;
 
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
-import edu.rice.cs.hpc.data.experiment.metric.IMetricValueCollection;
-import edu.rice.cs.hpc.data.experiment.metric.version2.MetricValueCollection2;
-import edu.rice.cs.hpc.data.experiment.metric.version3.MetricValueCollection3;
 
 
 /****************************************************************************
@@ -17,11 +14,8 @@ import edu.rice.cs.hpc.data.experiment.metric.version3.MetricValueCollection3;
  ****************************************************************************/
 public abstract class BaseExperimentWithMetrics extends BaseExperiment 
 {
+	/***** A list of metric descriptor   */
 	protected List<BaseMetric> metrics;
-
-	public void setMetrics(List<BaseMetric> metricList) {
-		metrics = metricList;
-	}
 
 	//////////////////////////////////////////////////////////////////////////
 	//ACCESS TO METRICS													    //
@@ -31,6 +25,21 @@ public abstract class BaseExperimentWithMetrics extends BaseExperiment
 	 *	Returns the array of metrics in the experiment.
 	 ************************************************************************/
 
+	/*****
+	 * Set the list of metric descriptors. Ideally this method has to be called
+	 * at most once for every creation of experiment
+	 * 
+	 * @param metricList : a list of metric descriptors
+	 */
+	public void setMetrics(List<BaseMetric> metricList) {
+		metrics = metricList;
+	}
+
+	/*****
+	 * Retrieve the list of metric descriptors
+	 * 
+	 * @return
+	 */
 	public BaseMetric[] getMetrics()
 	{
 		return 	this.metrics.toArray(new BaseMetric[0]);

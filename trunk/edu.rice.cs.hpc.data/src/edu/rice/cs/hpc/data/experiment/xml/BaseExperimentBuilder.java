@@ -55,8 +55,10 @@ public class BaseExperimentBuilder extends Builder {
 	/** The parsed configuration. */
 	protected ExperimentConfiguration configuration;
 
+	/** Master root scope, invisible **/
 	protected Scope rootScope;
-	protected Scope viewRootScope[];
+	/*** root scope of the view ***/
+	protected RootScope viewRootScope;
 
 	/** The experiment to own parsed objects. */
 	protected BaseExperiment experiment;
@@ -105,7 +107,7 @@ public class BaseExperimentBuilder extends Builder {
 	public BaseExperimentBuilder(BaseExperiment experiment, String defaultName, IUserData<String, String> userData) {
 		super();
 		this.csviewer = false;
-		viewRootScope = new RootScope[3];
+		//viewRootScope = new RootScope[3];
 		
 		hashProcedureTable = new HashMap<Integer, String>();
 		hashLoadModuleTable = new HashMap<Integer, LoadModuleScope>();
@@ -426,7 +428,7 @@ public class BaseExperimentBuilder extends Builder {
 		String sID = values[0];
 		try {
 			Integer objID = new Integer(sID);
-			LoadModuleScope lmScope = new LoadModuleScope(this.experiment, sValue, null, objID.intValue());
+			LoadModuleScope lmScope = new LoadModuleScope(viewRootScope, sValue, null, objID.intValue());
 			this.hashLoadModuleTable.put(objID, lmScope);
 		} catch (java.lang.NumberFormatException e) {
 			System.err.println("Incorrect load module ID: "+sID);
@@ -477,7 +479,7 @@ public class BaseExperimentBuilder extends Builder {
 		try {
 			Integer objIndex = Integer.parseInt(sIndex);
 			SourceFile sourceFile = this.getOrCreateSourceFile(name, objIndex.intValue());
-			Scope lmScope = new LoadModuleScope(this.experiment, name, sourceFile, objIndex.intValue());
+			Scope lmScope = new LoadModuleScope(this.viewRootScope, name, sourceFile, objIndex.intValue());
 			// make a new load module scope object
 			this.beginScope(lmScope);
 		} catch (Exception e) {
@@ -503,7 +505,7 @@ public class BaseExperimentBuilder extends Builder {
 					objFileKey.intValue());
 
 			this.srcFileStack.push(sourceFile);
-			Scope fileScope = new FileScope(this.experiment, sourceFile, objFileKey.intValue());
+			Scope fileScope = new FileScope(this.viewRootScope, sourceFile, objFileKey.intValue());
 
 			this.beginScope(fileScope);
 
@@ -576,12 +578,12 @@ public class BaseExperimentBuilder extends Builder {
 						// look at the dictionary for the name of the load module
 						objLoadModule = this.hashLoadModuleTable.get(indexFile);
 						if (objLoadModule == null) {
-							objLoadModule = new LoadModuleScope(this.experiment, values[i], null, indexFile.intValue());
+							objLoadModule = new LoadModuleScope(this.viewRootScope, values[i], null, indexFile.intValue());
 							this.hashLoadModuleTable.put(indexFile, objLoadModule);
 						}
 					} catch (java.lang.NumberFormatException e) {
 						// this error means that the lm is not based on dictionary
-						objLoadModule = new LoadModuleScope(this.experiment, values[i], null, values[i].hashCode());
+						objLoadModule = new LoadModuleScope(this.viewRootScope, values[i], null, values[i].hashCode());
 					}
 				} else if (attributes[i].equals("p") ) {
 					// obsolete format: p is the name of the procedure
@@ -612,9 +614,9 @@ public class BaseExperimentBuilder extends Builder {
 					// this is a line scope
 					Scope scope;
 					if (firstLn == lastLn)
-						scope = new LineScope(this.experiment, srcFile, firstLn-1, cct_id, flat_id);
+						scope = new LineScope(this.viewRootScope, srcFile, firstLn-1, cct_id, flat_id);
 					else
-						scope = new StatementRangeScope(this.experiment, srcFile, 
+						scope = new StatementRangeScope(this.viewRootScope, srcFile, 
 								firstLn-1, lastLn-1, cct_id, flat_id);
 					scope.setCpid(0);
 					scopeStack.push(scope);
@@ -635,7 +637,7 @@ public class BaseExperimentBuilder extends Builder {
 			srcFile.setIsText(istext);
 			this.srcFileStack.add(srcFile);
 
-			ProcedureScope procScope  = new ProcedureScope(this.experiment, objLoadModule, srcFile, 
+			ProcedureScope procScope  = new ProcedureScope(this.viewRootScope, objLoadModule, srcFile, 
 					firstLn-1, lastLn-1, 
 					sProcName, isalien, cct_id, flat_id, userData);
 
@@ -752,7 +754,7 @@ public class BaseExperimentBuilder extends Builder {
 			SourceFile sourceFile = this.getOrCreateSourceFile(filenm, objIndex.intValue());
 			this.srcFileStack.push(sourceFile);
 
-			Scope alienScope = new AlienScope(this.experiment, sourceFile, filenm, procnm, firstLn-1, lastLn-1, objIndex.intValue());
+			Scope alienScope = new AlienScope(this.viewRootScope, sourceFile, filenm, procnm, firstLn-1, lastLn-1, objIndex.intValue());
 
 			this.beginScope(alienScope);
 
@@ -839,7 +841,7 @@ public class BaseExperimentBuilder extends Builder {
 				sourceFile = frameScope.getSourceFile();
 			}
 		}
-		Scope loopScope = new LoopScope(this.experiment, sourceFile, firstLn-1, lastLn-1, cct_id, flat_id);
+		Scope loopScope = new LoopScope(this.viewRootScope, sourceFile, firstLn-1, lastLn-1, cct_id, flat_id);
 
 		this.beginScope(loopScope);
 	}
@@ -898,9 +900,9 @@ public class BaseExperimentBuilder extends Builder {
 
 		Scope scope;
 		if( firstLn == lastLn )
-			scope = new LineScope(this.experiment, srcFile, firstLn-1, cct_id, flat_id);
+			scope = new LineScope(this.viewRootScope, srcFile, firstLn-1, cct_id, flat_id);
 		else
-			scope = new StatementRangeScope(this.experiment, srcFile, 
+			scope = new StatementRangeScope(this.viewRootScope, srcFile, 
 					firstLn-1, lastLn-1, cct_id, flat_id);
 
 		scope.setCpid(cpid);
@@ -1074,8 +1076,8 @@ public class BaseExperimentBuilder extends Builder {
 			title = "Flat View";
 			rootType = RootScopeType.Flat;
 		}
-		this.viewRootScope[0]  = new RootScope(this.experiment, title, rootType);
-		beginScope(this.viewRootScope[0]);
+		this.viewRootScope  = new RootScope(this.experiment, title, rootType);
+		beginScope(this.viewRootScope);
 	}
 
 

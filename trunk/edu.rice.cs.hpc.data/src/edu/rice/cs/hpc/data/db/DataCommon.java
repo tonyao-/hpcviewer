@@ -21,6 +21,13 @@ abstract public class DataCommon
 	protected long format;
 	protected long num_threads;
 	protected long num_cctid;
+	
+	/**** The maximun size of the metrics according to summary.db
+	 *    This number may not be the same as the number of metrics in experiment.xml
+	 *    since summary.db will include all hidden metrics. The best way to know
+	 *    the number of metrics is to query through experiment class, not this number.
+	 *    In fact, I don't think this variable is useful ***/
+	@Deprecated
 	protected long num_metric;
 	
 	protected String filename;

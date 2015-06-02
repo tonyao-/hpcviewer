@@ -42,7 +42,7 @@ public class CallersViewScopeVisitor extends CallerScopeBuilder implements IScop
 
 	private Hashtable<Integer, Scope> calleeht = new Hashtable<Integer, Scope>();
 	
-	private Scope callersViewRootScope;
+	private RootScope callersViewRootScope;
 	
 	/****--------------------------------------------------------------------------------****
 	 * 
@@ -52,7 +52,7 @@ public class CallersViewScopeVisitor extends CallerScopeBuilder implements IScop
 	 * @param dodebug
 	 * @param filter
 	 ****--------------------------------------------------------------------------------****/
-	public CallersViewScopeVisitor(Experiment experiment, Scope cvrs, 
+	public CallersViewScopeVisitor(Experiment experiment, RootScope cvrs, 
 			int nMetrics, boolean dodebug, MetricValuePropagationFilter filter) {
 		this.callersViewRootScope = cvrs;
 		exclusiveOnly = new ExclusiveOnlyMetricPropagationFilter(experiment);
@@ -139,7 +139,8 @@ public class CallersViewScopeVisitor extends CallerScopeBuilder implements IScop
 	 * @param callee: the callee node (the procedure scope of this call chain)
 	 */
 	private void prepareCallChain(Scope scope, ProcedureScope callee) {
-		LinkedList<CallSiteScopeCallerView> callPathList = createCallChain(scope, scope, 
+		LinkedList<CallSiteScopeCallerView> callPathList = createCallChain(callersViewRootScope,
+				scope, scope, 
 				combinedMetrics, this.inclusiveOnly, this.exclusiveOnly);
 
 		//-------------------------------------------------------
@@ -170,6 +171,7 @@ public class CallersViewScopeVisitor extends CallerScopeBuilder implements IScop
 		if (caller_proc == null) {
 			// create a new procedure scope
 			caller_proc = (ProcedureScope) cct_proc_s.duplicate();
+			caller_proc.setRootScope(callersViewRootScope);
 			
 			// add to the tree
 			callersViewRootScope.addSubscope(caller_proc);

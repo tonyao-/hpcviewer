@@ -14,7 +14,6 @@
 
 package edu.rice.cs.hpc.data.experiment.scope;
 
-import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
 import edu.rice.cs.hpc.data.experiment.source.SourceFile;
 
@@ -49,9 +48,9 @@ public class LineScope extends Scope
  *	Creates a LineScope.
  ************************************************************************/
 	
-public LineScope(BaseExperiment experiment, SourceFile sourceFile, int lineNumber, int cct_id, int flat_id)
+public LineScope(RootScope root, SourceFile sourceFile, int lineNumber, int cct_id, int flat_id)
 {
-	super(experiment, sourceFile, lineNumber, lineNumber, cct_id, flat_id);
+	super(root, sourceFile, lineNumber, lineNumber, cct_id, flat_id);
 //	this.id = "LineScope";
 }
 
@@ -136,7 +135,7 @@ public int getLineNumber()
 
 public Scope duplicate() {
 	LineScope duplicatedScope = 
-		new LineScope(this.experiment, 
+		new LineScope(this.root, 
 				this.sourceFile, 
 				this.firstLineNumber,
 				getCCTIndex(), this.flat_node_index);

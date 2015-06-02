@@ -10,8 +10,10 @@ package edu.rice.cs.hpc.data.experiment.metric;
 public interface IMetricValueCollection 
 {
 	/****
-	 * get a metric value of a given index
-	 * @param index of the metric
+	 * get a metric value of a given metric index. To keep compatibility, this index
+	 * is not the ID of the metric, but the index of the dense metrics.
+	 * The derived class needs to covert from metric index to ID manually.
+	 * @param index of the metric (not the metric ID)
 	 * @return
 	 */
 	public MetricValue getValue(int index);

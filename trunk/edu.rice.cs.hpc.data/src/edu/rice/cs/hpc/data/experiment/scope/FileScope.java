@@ -14,7 +14,6 @@
 
 package edu.rice.cs.hpc.data.experiment.scope;
 
-import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
 import edu.rice.cs.hpc.data.experiment.source.SourceFile;
 import edu.rice.cs.hpc.data.util.*;
@@ -54,20 +53,20 @@ public class FileScope extends Scope
  *
  ************************************************************************/
 	
-public FileScope(BaseExperiment experiment, SourceFile sourceFile, int idFile)
+public FileScope(RootScope root, SourceFile sourceFile, int idFile)
 {
-	super(experiment, sourceFile, idFile);
+	super(root, sourceFile, idFile);
 //	this.id = "FileScope";
 }
 
-public FileScope(BaseExperiment experiment, SourceFile sourceFile)
+public FileScope(RootScope root, SourceFile sourceFile)
 {
-	super(experiment, sourceFile, Scope.idMax++);
+	super(root, sourceFile, Scope.idMax++);
 //	this.id = "FileScope";
 }
 
 public Scope duplicate() {
-    return new FileScope(this.experiment, sourceFile, this.flat_node_index);
+    return new FileScope(this.root, sourceFile, this.flat_node_index);
 }
 
 //////////////////////////////////////////////////////////////////////////
