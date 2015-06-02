@@ -13,6 +13,9 @@ import java.util.Random;
 
 import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.data.db.DataCommon;
+import edu.rice.cs.hpc.data.experiment.BaseExperimentWithMetrics;
+import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
+import edu.rice.cs.hpc.data.experiment.metric.MetricValue;
 
 /*********************************************
  * 
@@ -33,16 +36,16 @@ public class DataSummary extends DataCommon
 	// object variable
 	// --------------------------------------------------------------------
 	
-	long offset_start;
-	long offset_size;
-	long metric_start;
-	long metric_size;
+	private long offset_start;
+	private long offset_size;
+	private long metric_start;
+	private long metric_size;
 	
-	int size_offset;
-	int size_metid;
-	int size_metval;
+	private int size_offset;
+	private int size_metid;
+	private int size_metval;
 
-	int []cct_table = null;
+	private int []cct_table = null;
 	
 	private RandomAccessFile file;
 	private FileChannel channel;
@@ -98,68 +101,109 @@ public class DataSummary extends DataCommon
 					out.println();
 				}
 			}
-			out.println();
+			out.println("\n");
+			int cct = 1;
+			out.format("[%5d] ", cct);
+			printMetrics(out, cct);
+
 			// print random metrics
 			for (int i=0; i<15; i++)
 			{
 				Random r = new Random();
-				int cct  = r.nextInt((int) num_cctid);
+				cct  = r.nextInt((int) num_cctid);
 				out.format("[%5d] ", cct);
-				for (int j=0; j<num_metric; j++)
-				{
-					try {
-						float value = getMetric(cct, j);
-						out.format(" %4.2e  ", value);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-				out.println();
+				printMetrics(out, cct);
 			}
 		}
 	}
 	
-	/******
-	 * Retrieve a metric value for a specified cct id and metric id
+	/*******
+	 * print a list of metrics for a given CCT index
 	 * 
-	 * @param cct_id	: cct id scope
-	 * @param metric_id : metric ID
+	 * @param out : the outpur stream
+	 * @param cct : CCT index
+	 */
+	private void printMetrics(PrintStream out, int cct)
+	{
+		try {
+			final ByteBuffer buffer = readMetrics(cct);
+			if (buffer != null) {
+				int offset_size   = (int) (cct_table[cct+1] - cct_table[cct]);
+				int num_metrics   = offset_size / METRIC_ENTRY_SIZE; 
+				for(int i=0; i<num_metrics; i++)
+				{
+					int my_metric_id = buffer.getInt();
+					float metric_val = buffer.getFloat();
+					out.format("%2d: %4.2e  ", my_metric_id, metric_val);
+				}
+
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		out.println();
+	}
+	
+	
+	/***********
+	 * Reading a set of metrics from the file for a given CCT 
+	 * This method does not support concurrency. The caller is
+	 * responsible to handle mutual exclusion.
 	 * 
-	 * @return float metric value
+	 * @param cct_id : CCT ID
+	 * @return Byte buffer of the metrics
 	 * @throws IOException
 	 */
-	public float getMetric(int cct_id, int metric_id) throws IOException
+	private ByteBuffer readMetrics(int cct_id) throws IOException
 	{
-		long offset 	   = (metric_start + cct_table[cct_id]);
 		int offset_size    = (int) (cct_table[cct_id+1] - cct_table[cct_id]);
 		
-		if (offset_size<=0)
-			return DEFAULT_METRIC;
-		
-		long file_length   = file.length();
-		// make sure the offset is within the file range
-		if (file_length > offset)
+		if (offset_size>0)
 		{
+			long offset 	   = (metric_start + cct_table[cct_id]);
 			file.seek(offset);
 			byte []metric_byte = new byte[offset_size];
 			
 			file.readFully(metric_byte);
-			ByteBuffer buffer = ByteBuffer.wrap(metric_byte);
+			return ByteBuffer.wrap(metric_byte);
+		}
+		return null;
+	}
+	
+	/**********
+	 * Reading a set of metrics from the file for a given CCT 
+	 * This method does not support concurrency. The caller is
+	 * responsible to handle mutual exclusion.
+	 * 
+	 * @param cct_id
+	 * @return
+	 * @throws IOException
+	 */
+	public MetricValue[] getMetrics(int cct_id, BaseExperimentWithMetrics experiment) 
+			throws IOException
+	{
+		ByteBuffer buffer = readMetrics(cct_id);
+		if (buffer != null)
+		{
+			int offset_size    	= (int) (cct_table[cct_id+1] - cct_table[cct_id]);
+			int num_metrics_cct = offset_size / METRIC_ENTRY_SIZE;
+			int metric_size		= experiment.getMetricCount();
 			
-			int num_metrics   = offset_size / METRIC_ENTRY_SIZE; 
-			
-			for(int i=0; i<num_metrics; i++)
+			MetricValue []metric_values = new MetricValue[(int) metric_size];
+			for(int i=0; i<metric_size; i++)
+			{
+				metric_values[i] = MetricValue.NONE;
+			}
+			for(int i=0; i<num_metrics_cct; i++)
 			{
 				int my_metric_id = buffer.getInt();
+				BaseMetric metric = experiment.getMetric(String.valueOf(my_metric_id));
 				float metric_val = buffer.getFloat();
-				
-				if (my_metric_id == metric_id) {
-					return metric_val;
-				}
+				metric_values[metric.getIndex()] = new MetricValue(metric_val);
 			}
+			return metric_values;
 		}
-		return DEFAULT_METRIC;
+		return null;
 	}
 	
 	/*

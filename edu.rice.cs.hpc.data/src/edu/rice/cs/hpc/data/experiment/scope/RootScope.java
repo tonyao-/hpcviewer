@@ -15,7 +15,15 @@
 package edu.rice.cs.hpc.data.experiment.scope;
 
 
+import java.io.File;
+import java.io.IOException;
+
 import edu.rice.cs.hpc.data.experiment.BaseExperiment;
+import edu.rice.cs.hpc.data.experiment.BaseExperimentWithMetrics;
+import edu.rice.cs.hpc.data.experiment.metric.IMetricValueCollection;
+import edu.rice.cs.hpc.data.experiment.metric.version2.MetricValueCollection2;
+import edu.rice.cs.hpc.data.experiment.metric.version3.DataSummary;
+import edu.rice.cs.hpc.data.experiment.metric.version3.MetricValueCollection3;
 import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
 
@@ -40,7 +48,10 @@ public class RootScope extends Scope
 /** The name of the experiment's program. */
 protected String rootScopeName;
 protected RootScopeType rootScopeType;
-//public int MAX_LEVELS=0;
+private BaseExperiment experiment;
+
+
+private DataSummary dataSummary;
 
 //////////////////////////////////////////////////////////////////////////
 //	INITIALIZATION														//
@@ -55,17 +66,41 @@ protected RootScopeType rootScopeType;
 	
 public RootScope(BaseExperiment experiment, String name, RootScopeType rst)
 {
-	super(experiment, null, Scope.NO_LINE_NUMBER, Scope.NO_LINE_NUMBER, 0,0);	
-	this.rootScopeName = name;
-//	this.id = "RootScope";
-	this.rootScopeType = rst;
-	
+	// we assume the root scope CCT and Flat ID is 1
+	super(null, null, Scope.NO_LINE_NUMBER, Scope.NO_LINE_NUMBER, 1,1);	
+	this.rootScopeName 	= name;
+	this.experiment 	= experiment;
+	this.rootScopeType 	= rst;
+	root = this;
 }
 
 
 public Scope duplicate() {
-    return new RootScope(null,  this.rootScopeName, this.rootScopeType);
+    return new RootScope(experiment,  this.rootScopeName, this.rootScopeType);
 }
+
+
+public IMetricValueCollection getMetricValueCollection(Scope scope) throws IOException
+{
+	final int metric_size = ((BaseExperimentWithMetrics)experiment).getMetricCount();
+	final int version  	  = experiment.getMajorVersion();
+	
+	if (version == 3 && rootScopeType == RootScopeType.CallingContextTree) 
+	{
+		if (dataSummary == null)
+		{
+			dataSummary = new DataSummary();
+			String filename = experiment.getDefaultDirectory().getAbsolutePath() + File.separatorChar
+					+ experiment.getDbFilename(BaseExperiment.Db_File_Type.DB_SUMMARY);
+			dataSummary.open(filename);
+		}
+		MetricValueCollection3 col = new MetricValueCollection3(dataSummary, this, scope);
+		return col;
+	} else {
+		return new MetricValueCollection2(metric_size);		
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //	SCOPE DISPLAY														//
@@ -94,18 +129,22 @@ public RootScopeType getType()
 	return rootScopeType;
 }
 
-/*************************************************************************
- * reset the metric values into the default value (MetricValue.NONE)
+
+@Override
+/*
+ * (non-Javadoc)
+ * @see edu.rice.cs.hpc.data.experiment.scope.Scope#getExperiment()
  */
-/*public void resetMetricValues()
+public BaseExperiment getExperiment()
 {
-	if (metrics == null)
-		return;
-	
-	for (int i=0; i<metrics.length; i++) {
-		metrics[i] = MetricValue.NONE;
-	}	
-}*/
+	return experiment;
+}
+
+public void setExperiment(BaseExperiment experiment)
+{
+	this.experiment = experiment;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // support for visitors													//

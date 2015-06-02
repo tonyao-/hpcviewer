@@ -15,6 +15,7 @@
 package edu.rice.cs.hpc.data.experiment.scope;
 
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import edu.rice.cs.hpc.data.experiment.BaseExperiment;
@@ -23,7 +24,6 @@ import edu.rice.cs.hpc.data.experiment.metric.AggregateMetric;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
 import edu.rice.cs.hpc.data.experiment.metric.IMetricValueCollection;
 import edu.rice.cs.hpc.data.experiment.metric.MetricValue;
-import edu.rice.cs.hpc.data.experiment.metric.version2.MetricValueCollection2;
 import edu.rice.cs.hpc.data.experiment.scope.filters.MetricValuePropagationFilter;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.FilterScopeVisitor;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
@@ -62,8 +62,9 @@ static public final int SOURCE_CODE_NOT_AVAILABLE= 2;
 /** The current maximum number of ID for all scopes	 */
 static protected int idMax = 0;
 
+protected RootScope root;
 /** The experiment owning this scope. */
-protected BaseExperiment experiment;
+//protected BaseExperiment experiment;
 
 /** The source file containing this scope. */
 protected SourceFile sourceFile;
@@ -82,7 +83,7 @@ private IMetricValueCollection metrics;
 private IMetricValueCollection combinedMetrics;
 
 /** source citation */
-protected String srcCitation;
+//private String srcCitation;
 
 /**
  * FIXME: this variable is only used for the creation of callers view to count
@@ -110,26 +111,26 @@ public int iSourceCodeAvailability = Scope.SOURCE_CODE_UNKNOWN;
  *	Creates a Scope object with associated source line range.
  ************************************************************************/
 	
-public Scope(BaseExperiment experiment, SourceFile file, int first, int last, int cct_id, int flat_id)
+public Scope(RootScope root, SourceFile file, int first, int last, int cct_id, int flat_id)
 {
 	super(cct_id);
 	
 	// creation arguments
-	this.experiment = experiment;
+	this.root = root;
 	this.sourceFile = file;
 	this.firstLineNumber = first;
 	this.lastLineNumber = last;
 
-	this.srcCitation = null;
+//	this.srcCitation = null;
 	this.flat_node_index = flat_id;
 	this.cpid = -1;
 	this.iCounter  = 0;
 }
 
 
-public Scope(BaseExperiment experiment, SourceFile file, int first, int last, int cct_id, int flat_id, int cpid)
+public Scope(RootScope root, SourceFile file, int first, int last, int cct_id, int flat_id, int cpid)
 {
-	this(experiment, file, first, last, cct_id, flat_id);
+	this(root, file, first, last, cct_id, flat_id);
 	this.cpid = cpid;
 }
 
@@ -139,9 +140,9 @@ public Scope(BaseExperiment experiment, SourceFile file, int first, int last, in
  *	Creates a Scope object with associated source file.
  ************************************************************************/
 	
-public Scope(BaseExperiment experiment, SourceFile file, int scopeID)
+public Scope(RootScope root, SourceFile file, int scopeID)
 {
-	this(experiment, file, Scope.NO_LINE_NUMBER, Scope.NO_LINE_NUMBER, scopeID, scopeID);
+	this(root, file, Scope.NO_LINE_NUMBER, Scope.NO_LINE_NUMBER, scopeID, scopeID);
 }
 
 
@@ -292,12 +293,13 @@ public int hashCode() {
 	
 protected String getSourceCitation()
 {
-	if (this.srcCitation == null)  {
+	return getSourceCitation(sourceFile, firstLineNumber, lastLineNumber);
+/*	if (this.srcCitation == null)  {
 		
 		srcCitation = this.getSourceCitation(sourceFile, firstLineNumber, lastLineNumber);
 	}
 
-	return srcCitation;
+	return srcCitation;*/
 }
 
 
@@ -487,6 +489,7 @@ public void addSubscope(Scope subscope)
 
 public boolean hasMetrics() 
 {
+	verifyMetrics();
 	return (metrics != null);
 }
 
@@ -505,12 +508,23 @@ public boolean hasNonzeroMetrics() {
 // EXPERIMENT DATABASE 													//
 //////////////////////////////////////////////////////////////////////////
 public BaseExperiment getExperiment() {
-	return experiment;
+	return root.getExperiment();
 }
 
-public void setExperiment(BaseExperiment exp) {
-	this.experiment = exp;
+
+public void setRootScope(RootScope root)
+{
+	this.root = root;
 }
+
+public RootScope getRootScope()
+{
+	return root;
+}
+
+/*public void setExperiment(BaseExperiment exp) {
+	this.experiment = exp;
+}*/
 
 
 //===================================================================
@@ -528,7 +542,6 @@ public MetricValue getMetricValue(BaseMetric metric)
 	MetricValue value = getMetricValue(index);
 
 	// compute percentage if necessary
-	Scope root = this.experiment.getRootScope();
 	if((this != root) && (! MetricValue.isAnnotationAvailable(value)))
 	{
 		MetricValue total = root.getMetricValue(metric);
@@ -546,15 +559,14 @@ public MetricValue getMetricValue(BaseMetric metric)
 
 public MetricValue getMetricValue(int index)
 {
-	MetricValue value;
-        if(metrics != null && index < metrics.size())
-           {
-                value = metrics.getValue(index);
-           }
-        else
-                value = MetricValue.NONE;
+	ensureMetricStorage();
+	MetricValue value = MetricValue.NONE;
+    if(metrics != null && index < metrics.size())
+       {
+        value = metrics.getValue(index);
+       }
 
-        return value;
+    return value;
 }
 
 
@@ -616,30 +628,37 @@ public void backupMetricValues() {
 	if (this.metrics == null)
 		return;
 	
+	BaseExperiment experiment = getExperiment();
 	if (!(experiment instanceof BaseExperimentWithMetrics))
 		return;
 	
-	combinedMetrics = new MetricValueCollection2(metrics.size());
-	
-	for(int i=0; i<metrics.size(); i++) {
-		MetricValue value = metrics.getValue(i);
-		BaseMetric metric = ((BaseExperimentWithMetrics)this.experiment).getMetric(i);
-		
-		//------------------------------------------------------------------
-		// if the value is not availabe we do NOT store it but instead we
-		//    assign to MetricValue.NONE
-		//------------------------------------------------------------------
-		if (MetricValue.isAvailable(value)) {
-			//----------------------------------------------------------------------
-			// derived incremental metric type needs special treatment: 
-			//	their value changes in finalization phase, while others don't
-			//----------------------------------------------------------------------
-			if (metric instanceof AggregateMetric) {
-				combinedMetrics.setValue(i, value.duplicate());
-			} else {
-				combinedMetrics.setValue(i, value);
+	try {
+		combinedMetrics = root.getMetricValueCollection(this);
+				//new MetricValueCollection2(metrics.size());
+				
+		for(int i=0; i<metrics.size(); i++) {
+			MetricValue value = metrics.getValue(i);
+			BaseMetric metric = ((BaseExperimentWithMetrics)experiment).getMetric(i);
+			
+			//------------------------------------------------------------------
+			// if the value is not availabe we do NOT store it but instead we
+			//    assign to MetricValue.NONE
+			//------------------------------------------------------------------
+			if (MetricValue.isAvailable(value)) {
+				//----------------------------------------------------------------------
+				// derived incremental metric type needs special treatment: 
+				//	their value changes in finalization phase, while others don't
+				//----------------------------------------------------------------------
+				if (metric instanceof AggregateMetric) {
+					combinedMetrics.setValue(i, value.duplicate());
+				} else {
+					combinedMetrics.setValue(i, value);
+				}
 			}
 		}
+
+	} catch (IOException e) {
+		e.printStackTrace();
 	}
 }
 
@@ -666,22 +685,26 @@ public void setMetricValues(IMetricValueCollection values) {
  ***************************************************************************/
 public IMetricValueCollection getCombinedValues() {
 	
-	assert (this.isExperimentHasMetrics());
-	
-	final BaseExperimentWithMetrics exp = (BaseExperimentWithMetrics) experiment;
-	IMetricValueCollection values = new MetricValueCollection2(exp.getMetricCount());
-	
-	for (int i=0; i<exp.getMetricCount(); i++) {
-		BaseMetric m = exp.getMetric(i);
-		if (m instanceof AggregateMetric) {
-			if (this.combinedMetrics == null) {
-				values.setValue(i, metrics.getValue(i));
+	final BaseExperimentWithMetrics exp = (BaseExperimentWithMetrics) getExperiment();
+	IMetricValueCollection values = null;
+	try {
+		values = root.getMetricValueCollection(this);
+		
+		for (int i=0; i<exp.getMetricCount(); i++) {
+			BaseMetric m = exp.getMetric(i);
+			if (m instanceof AggregateMetric) {
+				if (this.combinedMetrics == null) {
+					values.setValue(i, metrics.getValue(i));
+				} else {
+					values.setValue(i, combinedMetrics.getValue(i));
+				}
 			} else {
-				values.setValue(i, combinedMetrics.getValue(i));
+				values.setValue(i, metrics.getValue(i));
 			}
-		} else {
-			values.setValue(i, metrics.getValue(i));
 		}
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
 	}
 	return values;
 }
@@ -695,9 +718,7 @@ public IMetricValueCollection getCombinedValues() {
  **************************************************************************/
 public void combine(Scope source, MetricValuePropagationFilter filter) {
 	
-	assert (this.isExperimentHasMetrics());
-	
-	final BaseExperimentWithMetrics _exp = (BaseExperimentWithMetrics) experiment;
+	final BaseExperimentWithMetrics _exp = (BaseExperimentWithMetrics) getExperiment();
 
 	int nMetrics = _exp.getMetricCount();
 	for (int i=0; i<nMetrics; i++) {
@@ -736,23 +757,38 @@ public void safeCombine(Scope source, MetricValuePropagationFilter filter) {
  ************************************************************************/
 	
 protected void ensureMetricStorage()
-{
+{	
+	verifyMetrics();
 	
-	assert (this.isExperimentHasMetrics());
+	final BaseExperimentWithMetrics exp = (BaseExperimentWithMetrics) getExperiment();
+	int metric_size = exp.getMetricCount();
 
-	final BaseExperimentWithMetrics _exp = (BaseExperimentWithMetrics) experiment;
-	int metric_size = _exp.getMetricCount();
-	if (metrics == null)
-	{
-		metrics = new MetricValueCollection2(metric_size);
-	} else {
-		if (metrics.size() < metric_size) {
-			IMetricValueCollection metrics_tmp = new MetricValueCollection2(metric_size);
+	if (metrics.size() < metric_size) {
+		IMetricValueCollection metrics_tmp;
+		try {
+			metrics_tmp = root.getMetricValueCollection(this);
 			for(int i=0; i<metrics.size(); i++)
 			{
 				metrics_tmp.setValue(i, metrics.getValue(i));
 			}
 			metrics = metrics_tmp;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+}
+
+private void verifyMetrics()
+{
+	if (metrics == null)
+	{
+		try {
+			metrics = root.getMetricValueCollection(this);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }
@@ -787,10 +823,6 @@ public void copyMetrics(Scope targetScope, int offset) {
 	}
 }
 
-protected boolean isExperimentHasMetrics()
-{
-	return (this.experiment instanceof BaseExperimentWithMetrics);
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -848,9 +880,9 @@ public void dfsVisitFilterScopeTree(FilterScopeVisitor sv) {
 public void dispose()
 {
 	super.dispose();
-	experiment 		= null;
+	root 		= null;
 	metrics 		= null;
-	srcCitation		= null;
+	//srcCitation		= null;
 	combinedMetrics = null;
 }
 

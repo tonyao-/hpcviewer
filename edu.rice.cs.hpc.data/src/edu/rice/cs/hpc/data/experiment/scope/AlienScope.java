@@ -14,7 +14,6 @@
 
 package edu.rice.cs.hpc.data.experiment.scope;
 
-import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
 import edu.rice.cs.hpc.data.experiment.source.SourceFile;
 
@@ -52,21 +51,21 @@ protected String procedureName;
  *	Creates a AlienScope.
  ************************************************************************/
 	
-public AlienScope(BaseExperiment experiment, SourceFile file, 
+public AlienScope(RootScope root, SourceFile file, 
 		  String fileName, String procName, 
 		  int first, int last, int id)
 {
-	super(experiment, file, first, last, id, id);
+	super(root, file, first, last, id, id);
 	this.fileName = fileName;
 	this.procedureName = procName;
 //	this.id = "AlienScope";
 }
 
-public AlienScope(BaseExperiment experiment, SourceFile file, 
+public AlienScope(RootScope root, SourceFile file, 
 		  String fileName, String procName, 
 		  int first, int last)
 {
-	this(experiment, file, fileName, procName, first, last, Scope.idMax++);
+	this(root, file, fileName, procName, first, last, Scope.idMax++);
 }
 
 
@@ -93,7 +92,7 @@ public String getName()
  ************************************************************************/
 
 public Scope duplicate() {
-	return new AlienScope(this.experiment, 
+	return new AlienScope(this.root, 
 			      this.sourceFile, 
 			      this.fileName,
 			      this.procedureName,

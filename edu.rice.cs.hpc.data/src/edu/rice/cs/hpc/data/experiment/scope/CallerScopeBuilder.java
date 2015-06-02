@@ -21,7 +21,7 @@ public class CallerScopeBuilder {
 	 * 
 	 * @return list of call path
 	 */
-	static public LinkedList<CallSiteScopeCallerView> createCallChain(
+	static public LinkedList<CallSiteScopeCallerView> createCallChain(RootScope root_caller_tree,
 			Scope scope_cct, Scope scope_cost, AbstractCombineMetric combine, 
 			MetricValuePropagationFilter inclusiveOnly, MetricValuePropagationFilter exclusiveOnly ) {
 		//-----------------------------------------------------------------------
@@ -67,7 +67,7 @@ public class CallerScopeBuilder {
 					lineScope = ((CallSiteScope)innerCS).getLineScope();
 				} else {
 					// hack for alien procedure: create a new line scope
-					lineScope = new LineScope(innerCS.getExperiment(), innerCS.getSourceFile(),
+					lineScope = new LineScope(innerCS.root, innerCS.getSourceFile(),
 							innerCS.getFirstLineNumber(), innerCS.getCCTIndex(),
 							innerCS.getFlatIndex());
 				}
@@ -85,6 +85,7 @@ public class CallerScopeBuilder {
 							new CallSiteScopeCallerView( lineScope, mycaller,
 									CallSiteScopeType.CALL_FROM_PROCEDURE, lineScope.hashCode(), next, scope_cost);
 
+						callerScope.setRootScope(root_caller_tree);
 						// set the value of the new scope
 						combine.combine(callerScope, scope_cost, inclusiveOnly, exclusiveOnly);
 						callPathList.addLast(callerScope);

@@ -133,7 +133,7 @@ public class CallSiteScopeCallerView extends CallSiteScope implements IMergedSco
 			//-------------------------------------------------------------------------
 			
 			LinkedList<CallSiteScopeCallerView> listOfChain = CallerScopeBuilder.createCallChain
-				(this.scopeCCT, scopeCost, combine_without_cond, inclusiveOnly, exclusiveOnly);
+				(root, scopeCCT, scopeCost, combine_without_cond, inclusiveOnly, exclusiveOnly);
 
 			if (!listOfChain.isEmpty())
 			{
@@ -159,7 +159,7 @@ public class CallSiteScopeCallerView extends CallSiteScope implements IMergedSco
 					// construct the child of this merged scope
 					//-------------------------------------------------------------------------
 					LinkedList<CallSiteScopeCallerView> listOfChain = CallersViewScopeVisitor.createCallChain
-						(scope_cct, scope, combine_without_cond, inclusiveOnly, exclusiveOnly);
+						(root, scope_cct, scope, combine_without_cond, inclusiveOnly, exclusiveOnly);
 					
 					//-------------------------------------------------------------------------
 					// For recursive function where the counter is more than 1, the counter to 
