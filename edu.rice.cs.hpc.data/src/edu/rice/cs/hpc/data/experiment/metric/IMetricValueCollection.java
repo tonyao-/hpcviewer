@@ -1,5 +1,7 @@
 package edu.rice.cs.hpc.data.experiment.metric;
 
+import edu.rice.cs.hpc.data.experiment.scope.Scope;
+
 /***********************************************************
  * 
  * The root interface to manage a collection of metric values.
@@ -16,7 +18,7 @@ public interface IMetricValueCollection
 	 * @param index of the metric (not the metric ID)
 	 * @return
 	 */
-	public MetricValue getValue(int index);
+	public MetricValue getValue(Scope scope, int index);
 	
 	/***
 	 * get the annotation of a given metric index
@@ -40,19 +42,6 @@ public interface IMetricValueCollection
 	 */
 	public void setAnnotation(int index, float ann);
 	
-	/*****
-	 * check if a value exist
-	 * @param index
-	 * @return
-	 */
-	public boolean isValueAvailable(int index);
-	
-	/****
-	 * check if an annotation exist
-	 * @param index
-	 * @return
-	 */
-	public boolean isAnnotationAvailable(int index);
 	
 	/*****
 	 * get the size of metric values

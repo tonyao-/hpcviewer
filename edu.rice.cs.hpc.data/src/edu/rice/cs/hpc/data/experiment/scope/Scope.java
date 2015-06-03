@@ -487,10 +487,10 @@ public void addSubscope(Scope subscope)
 //	ACCESS TO METRICS													//
 //////////////////////////////////////////////////////////////////////////
 
-public boolean hasMetrics() 
+private boolean hasMetrics() 
 {
-	verifyMetrics();
-	return (metrics != null);
+	//verifyMetrics();
+	return (metrics != null && metrics.size()>0);
 }
 
 public boolean hasNonzeroMetrics() {
@@ -563,7 +563,7 @@ public MetricValue getMetricValue(int index)
 	MetricValue value = MetricValue.NONE;
     if(metrics != null && index < metrics.size())
        {
-        value = metrics.getValue(index);
+        value = metrics.getValue(this, index);
        }
 
     return value;
@@ -611,7 +611,7 @@ private void accumulateMetricValue(int index, double value)
 	if (index >= metrics.size()) 
 		return;
 
-	MetricValue m = metrics.getValue(index);
+	MetricValue m = metrics.getValue(this, index);
 	if (m == MetricValue.NONE) {
 		MetricValue mv = new MetricValue(value);
 		metrics.setValue(index, mv);
@@ -637,7 +637,7 @@ public void backupMetricValues() {
 				//new MetricValueCollection2(metrics.size());
 				
 		for(int i=0; i<metrics.size(); i++) {
-			MetricValue value = metrics.getValue(i);
+			MetricValue value = metrics.getValue(this, i);
 			BaseMetric metric = ((BaseExperimentWithMetrics)experiment).getMetric(i);
 			
 			//------------------------------------------------------------------
@@ -694,12 +694,12 @@ public IMetricValueCollection getCombinedValues() {
 			BaseMetric m = exp.getMetric(i);
 			if (m instanceof AggregateMetric) {
 				if (this.combinedMetrics == null) {
-					values.setValue(i, metrics.getValue(i));
+					values.setValue(i, metrics.getValue(this, i));
 				} else {
-					values.setValue(i, combinedMetrics.getValue(i));
+					values.setValue(i, combinedMetrics.getValue(this, i));
 				}
 			} else {
-				values.setValue(i, metrics.getValue(i));
+				values.setValue(i, metrics.getValue(this, i));
 			}
 		}
 	} catch (IOException e) {
@@ -758,7 +758,7 @@ public void safeCombine(Scope source, MetricValuePropagationFilter filter) {
 	
 protected void ensureMetricStorage()
 {	
-	verifyMetrics();
+/*	verifyMetrics();
 	
 	final BaseExperimentWithMetrics exp = (BaseExperimentWithMetrics) getExperiment();
 	int metric_size = exp.getMetricCount();
@@ -769,7 +769,7 @@ protected void ensureMetricStorage()
 			metrics_tmp = root.getMetricValueCollection(this);
 			for(int i=0; i<metrics.size(); i++)
 			{
-				metrics_tmp.setValue(i, metrics.getValue(i));
+				metrics_tmp.setValue(i, metrics.getValue(this, i));
 			}
 			metrics = metrics_tmp;
 		} catch (IOException e) {
@@ -781,7 +781,7 @@ protected void ensureMetricStorage()
 }
 
 private void verifyMetrics()
-{
+{*/
 	if (metrics == null)
 	{
 		try {
@@ -807,7 +807,7 @@ public void copyMetrics(Scope targetScope, int offset) {
 	targetScope.ensureMetricStorage();
 	for (int k=0; k<metrics.size() && k<targetScope.metrics.size(); k++) {
 		MetricValue mine = null;
-		MetricValue crtMetric = metrics.getValue(k);
+		MetricValue crtMetric = metrics.getValue(this, k);
 
 		if ( MetricValue.isAvailable(crtMetric) && MetricValue.getValue(crtMetric) != 0.0) { // there is something to copy
 			mine = new MetricValue();

@@ -68,7 +68,7 @@ public class DerivedMetric extends BaseMetric {
 		this.varMap = new MetricVarMap(experiment);
 
 		// Bug fix: always compute the aggregate value 
-		this.dRootValue = getAggregateMetrics(root);
+		this.dRootValue = getDoubleValue(root);
 		if(this.dRootValue == 0.0)
 			this.annotationType = AnnotationType.NONE ;
 	}
@@ -83,28 +83,9 @@ public class DerivedMetric extends BaseMetric {
 		
 		// new formula has been set, refresh the root value used for computing percent
 		RootScope root = (RootScope) experiment.getRootScope().getSubscope(0);
-		dRootValue = getAggregateMetrics(root);
+		dRootValue = getDoubleValue(root);
 	}
 
-	// -----------------------------------------------------------------------
-	//	For the time being, the aggregate value will be computed point-wise, just like
-	//	the way scopes are computed.
-	// -----------------------------------------------------------------------
-	/**
-	 * Compute the general aggregate metric for cct, caller tree and flat tree
-	 * @param scopeRoot
-	 * @return the aggregate value
-	 */
-	private double getAggregateMetrics(RootScope scopeRoot) {
-		try {
-			Double objSum = this.getDoubleValue(scopeRoot);
-			if (objSum != null)
-				return objSum.doubleValue();
-		} catch (Exception e) {
-			// invalid metric ?
-		}
-		return Double.MIN_VALUE;
-	}
 	
 	
 	//===================================================================================
@@ -115,16 +96,9 @@ public class DerivedMetric extends BaseMetric {
 	 * @param scope: the current scope
 	 * @return the object Double if there is a value, null otherwise
 	 */
-	public Double getDoubleValue(Scope scope) {
-		Double objResult = null;
+	public double getDoubleValue(Scope scope) {
 		this.varMap.setScope(scope);
-		try {
-			double dValue = this.expression.eval(this.varMap, this.fctMap);
-			objResult = new Double(dValue);
-		} catch(java.lang.Exception e) {
-			// should throw an exception
-		}
-		return objResult;
+		return expression.eval(this.varMap, this.fctMap);
 	}
 	
 	/**
@@ -139,10 +113,11 @@ public class DerivedMetric extends BaseMetric {
 			dVal = dRootValue;
 		} else {
 			// otherwise, we need to recompute the value again via the equation
-			Double objVal = this.getDoubleValue(scope);
-			if(objVal == null)
+			dVal = getDoubleValue(scope);
+			
+			// ugly test to check whether the value exist or not
+			if(dVal == 0.0d)
 				return MetricValue.NONE;	// the value is not available !
-			dVal = objVal.doubleValue();
 		}
 		if(this.getAnnotationType() == AnnotationType.PERCENT){
 			return new MetricValue(dVal, ((float) dVal/this.dRootValue));

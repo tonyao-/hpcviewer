@@ -27,19 +27,17 @@ import edu.rice.cs.hpc.data.experiment.scope.Scope;
 public class MetricValueCollection3 implements IMetricValueCollection 
 {
 	final private DataSummary data;
-	final private Scope scope;
 	final private RootScope root;
 	private MetricValue []values;
 	
 	public MetricValueCollection3(DataSummary data, RootScope root, Scope scope) throws IOException
 	{
 		this.data 	 = data;
-		this.scope 	 = scope;
 		this.root	 = root;
 	}
 	
 	@Override
-	public MetricValue getValue(int index) 
+	public MetricValue getValue(Scope scope, int index) 
 	{
 		if (values == null)
 		{
@@ -91,14 +89,12 @@ public class MetricValueCollection3 implements IMetricValueCollection
 
 	@Override
 	public float getAnnotation(int index) {
-		MetricValue mv = getValue(index);
+		MetricValue mv = values[index];
 		return MetricValue.getAnnotationValue(mv);
 	}
 
 	@Override
 	public void setValue(int index, MetricValue value) {
-		// forcing to create metric values
-		getValue(index);
 		if (values != null) {
 			// If the index is out of array bound, it means we want to add a new derived metric.
 			// We will compute the derived value on the fly instead of storing it.
@@ -110,21 +106,10 @@ public class MetricValueCollection3 implements IMetricValueCollection
 
 	@Override
 	public void setAnnotation(int index, float ann) {
-		MetricValue value = getValue(index);
+		MetricValue value = values[index];
 		MetricValue.setAnnotationValue(value, ann);
 	}
 
-	@Override
-	public boolean isValueAvailable(int index) {
-		MetricValue value = getValue(index);
-		return MetricValue.isAvailable(value);
-	}
-
-	@Override
-	public boolean isAnnotationAvailable(int index) {
-		MetricValue mv = getValue(index);
-		return MetricValue.isAnnotationAvailable(mv);
-	}
 
 	@Override
 	public int size() {

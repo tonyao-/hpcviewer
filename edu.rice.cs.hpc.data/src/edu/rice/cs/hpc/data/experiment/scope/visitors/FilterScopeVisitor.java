@@ -39,6 +39,8 @@ public class FilterScopeVisitor implements IScopeVisitor
 	private final IFilterData filter;
 	private final IMetricValueCollection rootMetricValues;
 	private final BaseExperiment experiment;
+	private final RootScope rootOriginalCCT;
+	
 	private BaseMetric []metrics = null;
 	
 	/**** flag to allow the dfs to continue to go deeper or not.  
@@ -56,7 +58,7 @@ public class FilterScopeVisitor implements IScopeVisitor
 	{
 		this.filter 		  = filter;
 		this.rootMetricValues = rootOriginalCCT.getMetricValues();
-		
+		this.rootOriginalCCT  = rootOriginalCCT;
 		need_to_continue = true;
 		
 		experiment = rootOriginalCCT.getExperiment();
@@ -223,7 +225,7 @@ public class FilterScopeVisitor implements IScopeVisitor
 				parent.setMetricValue(i, value);
 				
 				// exclusive filter: merge the exclusive metrics to the parent's exclusive
-				mergeMetricToParent(parent, i, values.getValue(i));
+				mergeMetricToParent(parent, i, values.getValue(child, i));
 				
 			} else if (!exclusive_filter && metrics[i].getMetricType() == MetricType.INCLUSIVE)
 			{
@@ -234,7 +236,7 @@ public class FilterScopeVisitor implements IScopeVisitor
 				// however, when we ask getMetric(), it requires the metric index in the array (which is 0..n)
 				// we can cheat this by converting the index into "short name" and get the metric.
 				BaseMetric metric_exc = ((Experiment)experiment).getMetric(String.valueOf(index_exclusive_metric));
-				mergeMetricToParent(parent, metric_exc.getIndex(), values.getValue(i));
+				mergeMetricToParent(parent, metric_exc.getIndex(), values.getValue(child, i));
 			}
 		}
 	}
@@ -258,7 +260,7 @@ public class FilterScopeVisitor implements IScopeVisitor
 		}
 		// update the filtered value
 		value             += mvChild.getValue();
-		float rootValue   = rootMetricValues.getValue(metric_exclusive_index).getValue();
+		float rootValue   = rootMetricValues.getValue(rootOriginalCCT, metric_exclusive_index).getValue();
 		float annotation  = value / rootValue;
 		
 		MetricValue mv    = new MetricValue(value, annotation);
