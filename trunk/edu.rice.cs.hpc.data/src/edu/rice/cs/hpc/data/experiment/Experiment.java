@@ -368,7 +368,7 @@ public class Experiment extends BaseExperimentWithMetrics
 	public DerivedMetric addDerivedMetric(DerivedMetric objMetric) {
 
 		this.metrics.add(objMetric);
-
+/*
 		int iInclusive = this.getMetricCount() - 1;
 		int iExclusive = -1;		// at the moment we do not support exclusive/inclusive derived metric
 
@@ -380,7 +380,7 @@ public class Experiment extends BaseExperimentWithMetrics
 			DerivedMetricVisitor csv = new DerivedMetricVisitor(this, rootInclProp, iInclusive, iExclusive );
 			rootScope.dfsVisitScopeTree(csv);
 
-		}
+		}*/
 
 		return objMetric;
 	}

@@ -1,7 +1,11 @@
 package edu.rice.cs.hpc.data.experiment.metric.version2;
 
+import edu.rice.cs.hpc.data.experiment.BaseExperimentWithMetrics;
+import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
+import edu.rice.cs.hpc.data.experiment.metric.DerivedMetric;
 import edu.rice.cs.hpc.data.experiment.metric.IMetricValueCollection;
 import edu.rice.cs.hpc.data.experiment.metric.MetricValue;
+import edu.rice.cs.hpc.data.experiment.scope.Scope;
 
 /*********************************************************************
  * 
@@ -18,11 +22,22 @@ public class MetricValueCollection2 implements IMetricValueCollection
 	}
 	
 	@Override
-	public MetricValue getValue(int index) {
+	public MetricValue getValue(Scope scope, int index) {
 		if (values != null) {
-			final MetricValue mv = values[index];
-			if (mv != null) {
-				return mv;
+			if (index < values.length)
+			{
+				final MetricValue mv = values[index];
+				if (mv != null) {
+					return mv;
+				}
+			} else {
+				// index out of array bound: must be a derived metric
+				BaseExperimentWithMetrics experiment = (BaseExperimentWithMetrics) scope.getExperiment();
+				BaseMetric metric = experiment.getMetric(index);
+				if (metric instanceof DerivedMetric)
+				{
+					return ((DerivedMetric)metric).getValue(scope);
+				}
 			}
 		}
 		return MetricValue.NONE;
@@ -37,24 +52,21 @@ public class MetricValueCollection2 implements IMetricValueCollection
 	}
 
 	@Override
-	public void setValue(int index, MetricValue value) {
-		values[index] = value;
+	public void setValue(int index, MetricValue value) 
+	{
+		if (index < values.length)
+		{
+			values[index] = value;
+		}
 	}
 
 	@Override
 	public void setAnnotation(int index, float annotation) {
-		MetricValue.setAnnotationValue(values[index], annotation);
+		if (index < values.length) {
+			MetricValue.setAnnotationValue(values[index], annotation);
+		}
 	}
 
-	@Override
-	public boolean isValueAvailable(int index) {
-		return MetricValue.isAvailable(values[index]);
-	}
-
-	@Override
-	public boolean isAnnotationAvailable(int index) {
-		return MetricValue.isAnnotationAvailable(values[index]);
-	}
 
 	@Override
 	public int size() {

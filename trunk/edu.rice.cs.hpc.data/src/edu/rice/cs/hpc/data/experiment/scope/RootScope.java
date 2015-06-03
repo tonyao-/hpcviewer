@@ -74,12 +74,18 @@ public RootScope(BaseExperiment experiment, String name, RootScopeType rst)
 	root = this;
 }
 
-
+@Override
 public Scope duplicate() {
     return new RootScope(experiment,  this.rootScopeName, this.rootScopeType);
 }
 
-
+/******
+ * Retrieve (and create) the metric collection based on the version of the database.
+ *  
+ * @param scope : the current scope
+ * @return IMetricValueCollection
+ * @throws IOException
+ */
 public IMetricValueCollection getMetricValueCollection(Scope scope) throws IOException
 {
 	final int metric_size = ((BaseExperimentWithMetrics)experiment).getMetricCount();
