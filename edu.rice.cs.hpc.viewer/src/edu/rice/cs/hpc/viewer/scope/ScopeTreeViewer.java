@@ -140,9 +140,9 @@ public class ScopeTreeViewer extends TreeViewer {
 				// 	even if the derived metric is not modified at all.
 				// this solution is not optimal, but it works
 				// -----------------------------------------------------------------
-				
-				need_to_refresh |= (obj instanceof DerivedMetric);
-				if (need_to_refresh) {
+				boolean is_derived = (obj instanceof DerivedMetric);
+				need_to_refresh |= is_derived;
+				if (is_derived) {
 					Object objInp = getInput();
 					if (objInp instanceof RootScope) {
 						DerivedMetric dm = (DerivedMetric) obj;

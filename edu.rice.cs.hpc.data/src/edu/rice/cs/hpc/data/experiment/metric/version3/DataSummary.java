@@ -1,6 +1,5 @@
 
 package edu.rice.cs.hpc.data.experiment.metric.version3;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
@@ -45,11 +44,8 @@ public class DataSummary extends DataCommon
 	private int size_metid;
 	private int size_metval;
 
-	private int []cct_table = null;
-	
-	private RandomAccessFile file;
-	private FileChannel channel;
-
+	private int   [][]metric_id;
+	private float [][]metric_val;
 	
 	// --------------------------------------------------------------------
 	// Public methods
@@ -66,8 +62,6 @@ public class DataSummary extends DataCommon
 	{
 		super.open(file);
 		
-		open_internal(file);
-		// fill the cct offset table
 		fillOffsetTable(file);
 	}
 	
@@ -90,31 +84,20 @@ public class DataSummary extends DataCommon
 		out.println("size met id: "  + size_metid);
 		out.println("size met val: " + size_metval);
 		
-		if (cct_table != null) 
+		out.println("\n");
+		int cct = 1;
+		out.format("[%5d] ", cct);
+		printMetrics(out, cct);
+
+		// print random metrics
+		for (int i=0; i<15; i++)
 		{
-			for(int i=0; i<num_cctid; i++)
-			{
-				int num_metrics = (int) (cct_table[i+1] - cct_table[i]);
-				out.format("%4x (%2d) ", cct_table[i], num_metrics);
-				if (i % 16 == 15)
-				{
-					out.println();
-				}
-			}
-			out.println("\n");
-			int cct = 1;
+			Random r = new Random();
+			cct  = r.nextInt((int) num_cctid);
 			out.format("[%5d] ", cct);
 			printMetrics(out, cct);
-
-			// print random metrics
-			for (int i=0; i<15; i++)
-			{
-				Random r = new Random();
-				cct  = r.nextInt((int) num_cctid);
-				out.format("[%5d] ", cct);
-				printMetrics(out, cct);
-			}
 		}
+
 	}
 	
 	/*******
@@ -125,50 +108,14 @@ public class DataSummary extends DataCommon
 	 */
 	private void printMetrics(PrintStream out, int cct)
 	{
-		try {
-			final ByteBuffer buffer = readMetrics(cct);
-			if (buffer != null) {
-				int offset_size   = (int) (cct_table[cct+1] - cct_table[cct]);
-				int num_metrics   = offset_size / METRIC_ENTRY_SIZE; 
-				for(int i=0; i<num_metrics; i++)
-				{
-					int my_metric_id = buffer.getInt();
-					float metric_val = buffer.getFloat();
-					out.format("%2d: %4.2e  ", my_metric_id, metric_val);
-				}
-
-			}
-		} catch (IOException e1) {
-			e1.printStackTrace();
+		int []metrics = metric_id[cct];
+		for(int i=0; i<metrics.length; i++)
+		{
+			out.format("(%d, %1.2e)\t", metric_id[cct][i], metric_val[cct][i]);
 		}
 		out.println();
 	}
 	
-	
-	/***********
-	 * Reading a set of metrics from the file for a given CCT 
-	 * This method does not support concurrency. The caller is
-	 * responsible to handle mutual exclusion.
-	 * 
-	 * @param cct_id : CCT ID
-	 * @return Byte buffer of the metrics
-	 * @throws IOException
-	 */
-	private ByteBuffer readMetrics(int cct_id) throws IOException
-	{
-		int offset_size    = (int) (cct_table[cct_id+1] - cct_table[cct_id]);
-		
-		if (offset_size>0)
-		{
-			long offset 	   = (metric_start + cct_table[cct_id]);
-			file.seek(offset);
-			byte []metric_byte = new byte[offset_size];
-			
-			file.readFully(metric_byte);
-			return ByteBuffer.wrap(metric_byte);
-		}
-		return null;
-	}
 	
 	/**********
 	 * Reading a set of metrics from the file for a given CCT 
@@ -182,28 +129,23 @@ public class DataSummary extends DataCommon
 	public MetricValue[] getMetrics(int cct_id, BaseExperimentWithMetrics experiment) 
 			throws IOException
 	{
-		ByteBuffer buffer = readMetrics(cct_id);
-		if (buffer != null)
+		MetricValue []values = new MetricValue[experiment.getMetricCount()];
+		
+		for(int i=0; i<values.length; i++)
 		{
-			int offset_size    	= (int) (cct_table[cct_id+1] - cct_table[cct_id]);
-			int num_metrics_cct = offset_size / METRIC_ENTRY_SIZE;
-			int metric_size		= experiment.getMetricCount();
-			
-			MetricValue []metric_values = new MetricValue[(int) metric_size];
-			for(int i=0; i<metric_size; i++)
-			{
-				metric_values[i] = MetricValue.NONE;
-			}
-			for(int i=0; i<num_metrics_cct; i++)
-			{
-				int my_metric_id = buffer.getInt();
-				BaseMetric metric = experiment.getMetric(String.valueOf(my_metric_id));
-				float metric_val = buffer.getFloat();
-				metric_values[metric.getIndex()] = new MetricValue(metric_val);
-			}
-			return metric_values;
+			values[i] = MetricValue.NONE;
 		}
-		return null;
+		
+		int []metrics = metric_id[cct_id];
+		for (int i=0; i<metrics.length; i++)
+		{
+			int id = metrics[i];
+			BaseMetric metric = experiment.getMetric(String.valueOf(id));
+			int index = metric.getIndex();
+			values[index] = new MetricValue(metric_val[cct_id][i]);
+		}
+	
+		return values;
 	}
 	
 	/*
@@ -212,8 +154,8 @@ public class DataSummary extends DataCommon
 	 */
 	public void dispose() throws IOException
 	{
-		channel.close();
-		file.close();
+		metric_id = null;
+		metric_val = null;
 	}
 	
 
@@ -261,26 +203,51 @@ public class DataSummary extends DataCommon
 	private void fillOffsetTable(final String filename)
 			throws IOException
 	{
+		final RandomAccessFile file = new RandomAccessFile(filename, "r");
+		final FileChannel channel	= file.getChannel();
 		// map all the table into memory. 
 		// This statement can be problematic if the offset_size is huge
 		
 		MappedByteBuffer mappedBuffer = channel.map(MapMode.READ_ONLY, offset_start, offset_size);
 		LongBuffer longBuffer = mappedBuffer.asLongBuffer();
 		
-		cct_table = new int[(int) num_cctid+1];
+		final int []cct_table = new int[(int) num_cctid+1];
 		
 		for (int i=0; i<=num_cctid; i++)
 		{
 			cct_table[i] = (int) longBuffer.get(i);
 		}
+		
+		metric_id 	  = new int  [(int)num_cctid][];
+		metric_val 	  = new float[(int)num_cctid][];
+		byte []buffer = new byte [(int) metric_size];
+		
+		file.seek(metric_start);
+		file.readFully(buffer);
+		
+		int offset = 0;
+		for (int i=0; i<num_cctid; i++)
+		{
+			int offset_size  = (int) (cct_table[i+1] - cct_table[i]);
+			int num_metrics  = offset_size / METRIC_ENTRY_SIZE;
+			
+			metric_id[i] 	 = new int  [num_metrics]; 
+			metric_val[i] 	 = new float[num_metrics]; 
+			
+			for (int j=0; j<num_metrics; j++)
+			{
+				ByteBuffer bb = ByteBuffer.wrap(buffer, offset, Constants.SIZEOF_INT);
+				metric_id[i][j] = bb.getInt();
+				offset += Constants.SIZEOF_INT;
+				
+				bb = ByteBuffer.wrap(buffer, offset, Constants.SIZEOF_FLOAT);
+				metric_val[i][j] = bb.getFloat();
+				offset += Constants.SIZEOF_FLOAT;
+			}
+		}
 	}
 	
 	
-	private void open_internal(String filename) throws FileNotFoundException
-	{
-		file 	= new RandomAccessFile(filename, "r");
-		channel = file.getChannel();
-	}
 
 	/***************************
 	 * unit test 
