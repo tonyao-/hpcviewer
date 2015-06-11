@@ -8,9 +8,6 @@ import org.swtchart.IAxisTick;
 
 import edu.rice.cs.hpc.data.experiment.metric.MetricRaw;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
-import edu.rice.cs.hpc.viewer.metric.IThreadDataCollection;
-import edu.rice.cs.hpc.viewer.metric.ThreadLevelDataFile;
-import edu.rice.cs.hpc.viewer.metric.ThreadLevelDataManager;
 
 public class GraphEditorPlot extends GraphEditor {
 
@@ -40,13 +37,12 @@ public class GraphEditorPlot extends GraphEditor {
 
 		xTick.setFormat(new DecimalFormat("##########"));
 
-		IThreadDataCollection  threadCol = threadData.getThreadCollection();
-		if (threadCol.getParallelismLevel()>1) 
+		if (threadData.getParallelismLevel()>1) 
 		{
 			xTick.setFormat(new DecimalFormat("######00.00##"));
 		}
 
-		return threadCol.getRankTitle();
+		return threadData.getRankTitle();
 	}
 
 }
