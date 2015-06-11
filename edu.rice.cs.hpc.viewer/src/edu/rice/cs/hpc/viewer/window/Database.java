@@ -1,5 +1,7 @@
 package edu.rice.cs.hpc.viewer.window;
 
+import java.io.IOException;
+
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.viewer.experiment.ExperimentView;
 import edu.rice.cs.hpc.viewer.metric.ThreadLevelDataManager;
@@ -56,8 +58,9 @@ public class Database {
 	/**
 	 *  set the Experiment class used for this database
 	 * @param path
+	 * @throws IOException 
 	 */
-	public void setExperiment (Experiment exper) {
+	public void setExperiment (Experiment exper) throws IOException {
 		experiment = exper;
 		dataManager = new ThreadLevelDataManager(exper);
 		return;

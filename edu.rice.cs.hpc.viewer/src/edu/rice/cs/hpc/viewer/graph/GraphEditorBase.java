@@ -21,6 +21,7 @@ import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.viewer.editor.IViewerEditor;
 import edu.rice.cs.hpc.viewer.metric.ThreadLevelDataManager;
 import edu.rice.cs.hpc.viewer.util.WindowTitle;
+import edu.rice.cs.hpc.viewer.window.Database;
 
 
 /**
@@ -33,46 +34,46 @@ public abstract class GraphEditorBase extends EditorPart implements IViewerEdito
 	
 	// chart is used to plot graph or histogram on canvas. each editor has its own chart
     private Chart chart;
+    protected ThreadLevelDataManager threadData;
     
-    // a database of an experiment containing raw metrics to plot
-	protected ThreadLevelDataManager threadData;
-
-	//@Override
+	@Override
 	public void doSave(IProgressMonitor monitor) {
 		// TODO Auto-generated method stub
 	}
 
-	//@Override
+	@Override
 	public void doSaveAs() {
 		// TODO Auto-generated method stub
 	}
 
-	//@Override
+	@Override
 	public void init(IEditorSite site, IEditorInput input)
 			throws PartInitException {
 
 		this.setSite(site);
 		this.setInput(input);
 		
-		if (input instanceof GraphEditorInput) {
-			final GraphEditorInput editorInput = (GraphEditorInput) input; 
-			threadData = editorInput.getDatabase().getThreadLevelDataManager();
+		if (input instanceof GraphEditorInput)
+		{
+			final GraphEditorInput editorInput = (GraphEditorInput) input;
+			final Database database 		   = editorInput.getDatabase();
+			threadData = database.getThreadLevelDataManager();
 		}
 	}
 
-	//@Override
+	@Override
 	public boolean isDirty() {
 		return false;
 	}
 
-	//@Override
+	@Override
 	public boolean isSaveAsAllowed() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 
-	//@Override
+	@Override
 	public void setFocus() {
 		// TODO Auto-generated method stub
 

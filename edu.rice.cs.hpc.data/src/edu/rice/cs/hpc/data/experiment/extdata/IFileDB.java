@@ -2,6 +2,7 @@ package edu.rice.cs.hpc.data.experiment.extdata;
 
 import java.io.IOException;
 
+
 /*************************************************
  * 
  * Generic interface to read an external data 
@@ -23,6 +24,6 @@ public interface IFileDB
 	
 	public long 	getMinLoc(int rank);
 	public long 	getMaxLoc(int rank);
-
+	
 	public void		dispose();
 }

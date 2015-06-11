@@ -26,7 +26,7 @@ public abstract class BaseExperiment implements IExperiment
 	 */
 	static public enum Db_File_Type {DB_SUMMARY, DB_TRACE, DB_PLOT, DB_THREADS};
 	
-	static final public String []DefaultDbFilename = {"summary.db", "trace.db", "plot.db", "threads.db"};
+	static final private String []DefaultDbFilename = {"summary.db", "trace.db", "plot.db", "threads.db"};
 	
 	/** The experiment's configuration. */
 	protected ExperimentConfiguration configuration;
@@ -97,10 +97,14 @@ public abstract class BaseExperiment implements IExperiment
 	}
 
 
+	static public String getDefaultDatabaseName(Db_File_Type type)
+	{
+		return DefaultDbFilename[type.ordinal()];
+	}
 	
 	static public String getDefaultDbTraceFilename()
 	{
-		return DefaultDbFilename[Db_File_Type.DB_TRACE.ordinal()];
+		return getDefaultDatabaseName(Db_File_Type.DB_TRACE);
 	}
 	/****
 	 * retrieve the root scope of caller tree (bottom-up view)

@@ -1,5 +1,7 @@
 package edu.rice.cs.hpc.viewer.experiment;
 
+import java.io.IOException;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 
 import edu.rice.cs.hpc.common.util.ProcedureAliasMap;
@@ -186,7 +188,15 @@ public class ExperimentView {
 			return;     // we already issued a dialog message to notify user the open failed.
 		}
 
-		db.setExperiment(experiment);		// set the experiment class used for the database
+		try {
+			db.setExperiment(experiment);
+		} catch (IOException e1) {
+			MessageDialog.openError(window.getShell(), "Fail to open the database", 
+					"Error opening the database: " +  e1.getMessage() );
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return;
+		}		// set the experiment class used for the database
         
 		// the view index has values from 0-4 and is used to index arrays (layout folders and possibly others)
 		final String viewIdx = Integer.toString(vWin.reserveDatabaseNumber());

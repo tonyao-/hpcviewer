@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import edu.rice.cs.hpc.data.db.DataThread;
+import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.extdata.FileDB2;
 import edu.rice.cs.hpc.data.experiment.extdata.IFileDB;
 
@@ -46,11 +47,12 @@ public class FileDB3 implements IFileDB
 	 */
 	public void open(String directory) throws IOException
 	{
-		String filename = directory + File.separatorChar + "trace.db";
+		String filename = directory + File.separatorChar + BaseExperiment.getDefaultDbTraceFilename();
 		dataTrace = new DataTrace();
 		dataTrace.open(filename);
 		
-		filename = directory + File.separatorChar + "threads.db";
+		filename = directory + File.separatorChar + 
+				BaseExperiment.getDefaultDatabaseName(BaseExperiment.Db_File_Type.DB_THREADS);
 		dataThread = new DataThread();
 		dataThread.open(filename);
 	}
@@ -73,7 +75,8 @@ public class FileDB3 implements IFileDB
 			sbRank.setLength(0);
 			for(int j=0; j<numLevels; j++)
 			{
-				sbRank.append( String.valueOf(ranks[i]) );
+				int k = i*numLevels + j;
+				sbRank.append( String.valueOf(ranks[k]) );
 				if (j == numLevels-1)
 				{
 					rank_label[i] = sbRank.toString();
