@@ -72,12 +72,15 @@ public class ExperimentFileXML extends ExperimentFile
  * place where the actual file (as opposed to a stream referring to the
  * file) is available.
  * 
+ * @param stream : input stream
  * @param name
  *            The name of the file. For now, this is hard coded, but it
  *            should be obvious from the file chosen in the remote browser
  *            UI
  * @param experiment
- *            Experiment object to own the parsed subparts.
+ *            Experiment object to own the parsed sub parts.
+ * @param need_metrics : flag whether the app needs metrics (hpcviewer) or not 
+ * 				(hpctraceviewer)
  * @param userData
  *            I don't know why this is here, since it apparently isn't used.
  *            I'm leaving it for maximum compatibility.
@@ -151,32 +154,40 @@ public void parse(File file, BaseExperiment experiment, boolean need_metrics, IU
 	}
 	else
 	{
-		// if we don't need metrics, we should look at callpath.xml
-		//	which is a light version of experiment.xml without metrics
-		// 	sax parser is not good enough in reading large xml file since
-		//	it uses old technique of reader line by line. we should come
-		//	up with a better xml parser.
-		// note: this is a quick hack to fix slow xml reader in ibm bg something
-		
-		String callpathLoc = directory + File.separatorChar + "callpath.xml";
-		File callpathFile = new File(callpathLoc);
-		if (!callpathFile.exists())
-		{
-			Grep.grep(xmlFilePath, callpathLoc, "<M ", false);
-			callpathFile = new File(callpathLoc);
+		// TODO: check the version of the database. If the directory contains trace.db,
+		// it must be version 3.
+		File trace_db_file = new File(directory + File.separatorChar + 
+				BaseExperiment.getDefaultDbTraceFilename());
+		if (trace_db_file.canRead()) {
+			// version 3
+			stream = new FileInputStream(XMLfile);
+			builder = new BaseExperimentBuilder(experiment, name, userData);
+		} else {
+			// version 1 and 2
+			// if we don't need metrics, we should look at callpath.xml
+			//	which is a light version of experiment.xml without metrics
+			// 	sax parser is not good enough in reading large xml file since
+			//	it uses old technique of reader line by line. we should come
+			//	up with a better xml parser.
+			// note: this is a quick hack to fix slow xml reader in ibm bg something
+			
+			String callpathLoc = directory + File.separatorChar + "callpath.xml";
+			File callpathFile = new File(callpathLoc);
+			if (!callpathFile.exists())
+			{
+				Grep.grep(xmlFilePath, callpathLoc, "<M ", false);
+				callpathFile = new File(callpathLoc);
+			}
+			stream = new FileInputStream(callpathFile);
+			builder = new BaseExperimentBuilder(experiment, name, userData);
 		}
-		stream = new FileInputStream(callpathFile);
-		builder = new BaseExperimentBuilder(experiment, name, userData);
 	}
 	
 	Parser parser = new Parser(name, stream, builder);
 	parser.parse();
 
-	if( builder.getParseOK() == Builder.PARSER_OK ) {
-		// parsing is done successfully
-	} else
+	if ( builder.getParseOK() != Builder.PARSER_OK ) {
 		throw new InvalExperimentException(builder.getParseErrorLineNumber());        	
-		}
-
-
+	}
+}
 }

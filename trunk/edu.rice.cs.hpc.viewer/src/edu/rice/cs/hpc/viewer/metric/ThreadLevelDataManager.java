@@ -107,11 +107,15 @@ public class ThreadLevelDataManager {
 	}
 
 	
-	public IThreadDataCollection getThreadCollection()
+	public int getParallelismLevel()
 	{
-		return data_file;
+		return data_file.getParallelismLevel();
 	}
 	
+	public String getRankTitle()
+	{
+		return data_file.getRankTitle();
+	}
 	
 	public void dispose() {
 		if (data_file != null) {
