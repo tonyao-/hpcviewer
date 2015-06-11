@@ -122,4 +122,19 @@ public class MetricValueCollection3 implements IMetricValueCollection
 
 	}
 
+	@Override
+	public boolean hasMetrics(Scope scope) {
+		// trigger initialization
+		getValue(scope, 0);
+		if (values != null)
+		{
+			for(MetricValue value : values)
+			{
+				if (value != MetricValue.NONE)
+					return true;
+			}
+		}
+		return false;
+	}
+
 }

@@ -79,4 +79,17 @@ public class MetricValueCollection2 implements IMetricValueCollection
 	@Override
 	public void dispose() {
 	}
+
+	@Override
+	public boolean hasMetrics(Scope scope) {
+		if (values != null)
+		{
+			for (MetricValue mv : values)
+			{
+				if (mv != MetricValue.NONE)
+					return true;
+			}
+		}
+		return false;
+	}
 }

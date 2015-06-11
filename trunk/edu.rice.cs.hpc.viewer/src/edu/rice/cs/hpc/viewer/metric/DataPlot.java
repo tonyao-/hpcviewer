@@ -50,15 +50,14 @@ public class DataPlot extends DataCommon
 	public void open(String filePlot) throws IOException
 	{
 		super.open(filePlot);
-		fillOffsetTable(filePlot);
-		file = internal_open(filePlot);
 	}
 	
 	
 	@Override
 	public void dispose() {
 		try {
-			file.close();
+			if (file != null)
+				file.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -105,7 +104,14 @@ public class DataPlot extends DataCommon
 				index_start, index_length, plot_start, plot_length);
 		out.format("\n size cct id: %d\n size met id: %d\n size offset: %d\n size  count: %d\n", 
 				size_cctid, size_metid, size_offset, size_count);
-		out.format("size tid: %d\n size met val: %d\n", size_tid, size_metval);
+		out.format(" size tid: %d\n size met val: %d\n", size_tid, size_metval);
+		
+		try {
+			checkData();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return;
+		}
 		
 		// reading some parts of the indexes
 		Random r = new Random();
@@ -124,7 +130,6 @@ public class DataPlot extends DataCommon
 						for (int j=0; j<pi.count; j++)
 						{
 							out.format("\t%s", entry[j]);
-							//out.format("\t(%d, %.2f)", entry[j].tid, entry[j].metval);
 						}
 						out.println();
 					}
@@ -153,6 +158,8 @@ public class DataPlot extends DataCommon
 	 */
 	public DataPlotEntry []getPlotEntry(int cct, int metric) throws IOException
 	{
+		checkData();
+		
 		PlotIndex pi = table_index.get(cct);
 		file.seek(pi.offset);
 		byte []buffer = new byte[PLOT_ENTRY_SIZE * pi.count];
@@ -179,6 +186,15 @@ public class DataPlot extends DataCommon
 		RandomAccessFile file = new RandomAccessFile(filename, "r");
 		return file;
 
+	}
+	
+	private void checkData() throws IOException
+	{
+		if (table_index == null) 
+		{
+			fillOffsetTable(filename);
+			file = internal_open(filename);
+		}
 	}
 	
 	private void fillOffsetTable(String filename) throws IOException
