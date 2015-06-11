@@ -42,6 +42,11 @@ public interface IMetricValueCollection
 	 */
 	public void setAnnotation(int index, float ann);
 	
+	/***
+	 * return if the current scope has at least a metric value
+	 * @return true if a metric value exists, false otherwise.
+	 */
+	public boolean hasMetrics(Scope scope);
 	
 	/*****
 	 * get the size of metric values

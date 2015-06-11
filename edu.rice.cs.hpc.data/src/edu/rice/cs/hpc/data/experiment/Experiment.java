@@ -122,7 +122,7 @@ public class Experiment extends BaseExperimentWithMetrics
 		EmptyMetricValuePropagationFilter filter = new EmptyMetricValuePropagationFilter();
 
 		CallersViewScopeVisitor csv = new CallersViewScopeVisitor(this, callersViewRootScope, 
-				this.getMetricCount(), false, filter);
+					getMetricCount(), false, filter);
 		callingContextViewRootScope.dfsVisitScopeTree(csv);
 
 		// --------------------------------

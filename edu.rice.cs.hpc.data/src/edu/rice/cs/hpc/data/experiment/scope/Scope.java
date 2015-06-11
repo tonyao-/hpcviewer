@@ -490,7 +490,10 @@ public void addSubscope(Scope subscope)
 private boolean hasMetrics() 
 {
 	//verifyMetrics();
-	return (metrics != null && metrics.size()>0);
+	//return (metrics != null && metrics.size()>0);
+	ensureMetricStorage();
+
+	return metrics.hasMetrics(this);
 }
 
 public boolean hasNonzeroMetrics() {

@@ -101,7 +101,7 @@ public class CallersViewScopeVisitor extends CallerScopeBuilder implements IScop
 		//--------------------------------------------------------------------------------
 		// if there are no exclusive costs to attribute from this context, we are done here
 		//--------------------------------------------------------------------------------
-		if (!scope.hasNonzeroMetrics() || scope.getName().equals(HiddenProcedures)) {
+		if ( !scope.hasNonzeroMetrics() || scope.getName().equals(HiddenProcedures) ) {
 			return; 
 		}
 		
