@@ -27,7 +27,7 @@ public class DataThread extends DataCommon
 	private int  num_fields;
 	private int  size_string, size_field;
 	
-	private String []message_title;
+	private String message_title;
 	private int []ranks;
 
 	@Override
@@ -45,7 +45,7 @@ public class DataThread extends DataCommon
 		return num_fields;
 	}
 	
-	public String[] getParallelismTitle()
+	public String getParallelismTitle()
 	{
 		return message_title;
 	}
@@ -102,11 +102,7 @@ public class DataThread extends DataCommon
 		out.println("Size fields: " + size_field);
 		
 		out.println("\nTitle:");
-		if (message_title != null)
-			for(String title: message_title)
-			{
-				out.println("\t" + title);
-			}
+		out.println("\t" + message_title);
 		out.println("\nRanks:");
 		if (ranks != null)
 			for(int rank : ranks)
@@ -127,13 +123,18 @@ public class DataThread extends DataCommon
 		byte []buffer = new byte[MESSAGE_SIZE];
 		
 		int num_titles = (int) (string_length / MESSAGE_SIZE);
-		message_title 		   = new String[num_titles];
+		StringBuffer title = new StringBuffer();
 		
 		for (int i=0; i<num_titles; i++)
 		{
 			file.read(buffer);
-			message_title[i] = new String(buffer);
+			if (i>0) {
+				title.append(".");
+			}
+			title.append(new String(buffer));
 		}
+		message_title  = title.toString();
+
 		int num_ranks = (int) (index_length / Constants.SIZEOF_INT);
 		ranks = new int[num_ranks];
 		

@@ -114,8 +114,12 @@ public class ExtDerivedMetricDlg extends TitleAreaDialog {
 	  protected Control createContents(Composite parent) {
 	    Control contents = super.createContents(parent);
 
-	    // Set the title
-	    setTitle("Creating a derived metric");
+	    // Set the title: if the metric hasn't been set, its a new metric creation
+	    // 	otherwise we want to modify the metric
+	    if (metric == null)
+	    	setTitle("Creating a derived metric");
+	    else
+	    	setTitle("Updating metric '" + metric.getDisplayName()+"'");
 
 	    // Set the message
 	    setMessage("A derived metric is a spreadsheet-like formula using other metrics (variables), operators, functions,\n"

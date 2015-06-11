@@ -16,13 +16,21 @@ import edu.rice.cs.hpc.data.util.Constants;
  * class to manage data on thread level of a specific experiment
  * 
  *
- */
-public class ThreadLevelDataFile extends FileDB2 {
+ *****************************************/
+public class ThreadLevelDataFile extends FileDB2 
+{
 
 	// header bytes to skip
 	static private final int HEADER_LONG	=	32;
 	static int recordSz = Constants.SIZEOF_LONG + Constants.SIZEOF_LONG;
 
+	final private IStatusLineManager statusMgr;
+	
+	public ThreadLevelDataFile(IStatusLineManager statusMgr)
+	{
+		this.statusMgr = statusMgr;
+	}
+	
 	public void open(String filename) throws IOException
 	{
 		super.open(filename, HEADER_LONG, recordSz);
@@ -35,7 +43,8 @@ public class ThreadLevelDataFile extends FileDB2 {
 	 * @param numMetrics: the number of metrics in the experiment
 	 * @return
 	 */
-	public double[] getMetrics(long nodeIndex, int metricIndex, int numMetrics, IStatusLineManager statusMgr) {
+	public double[] getMetrics(long nodeIndex, int metricIndex, int numMetrics) 
+	{
 	
 		final double []metrics = new double[getNumberOfRanks()];
 		TimelineProgressMonitor monitor = null;
@@ -178,5 +187,4 @@ public class ThreadLevelDataFile extends FileDB2 {
 			}
 		}
 	}
-
 }

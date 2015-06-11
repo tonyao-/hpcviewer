@@ -19,10 +19,14 @@ import org.swtchart.ISeries.SeriesType;
 import edu.rice.cs.hpc.data.experiment.metric.MetricRaw;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.viewer.framework.Activator;
-import edu.rice.cs.hpc.viewer.metric.ThreadLevelDataFile;
-import edu.rice.cs.hpc.viewer.metric.ThreadLevelDataManager;
 import edu.rice.cs.hpc.viewer.util.PreferenceConstants;
 
+/***************************************************************
+ * 
+ * Abstract class to display plot graph, whether it's a normal
+ * plot graph or a sorted plot graph
+ *
+ ***************************************************************/
 public abstract class GraphEditor extends GraphEditorBase {
 
 	static private final int DEFAULT_DIAMETER = 3;
@@ -99,13 +103,13 @@ public abstract class GraphEditor extends GraphEditorBase {
 		
 		double y_values[];
 		try {
-			y_values = this.getValuesY(threadData, scope, metric);
+			y_values = getValuesY(scope, metric);
 			
 			double []x_values;
 
-			x_values = this.getValuesX(threadData, scope, metric);
+			x_values = getValuesX(scope, metric);
 
-			Chart chart = this.getChart();
+			Chart chart = getChart();
 
 			// -----------------------------------------------------------------
 			// create scatter series
@@ -121,7 +125,7 @@ public abstract class GraphEditor extends GraphEditorBase {
 			scatterSeries.setXSeries(x_values);
 			scatterSeries.setYSeries(y_values);
 			
-			String axis_x = this.getXAxisTitle( threadData.getThreadLevelDataFile(metric.getID()) );
+			String axis_x = this.getXAxisTitle( );
 			chart.getAxisSet().getXAxis(0).getTitle().setText( axis_x );
 			chart.getAxisSet().getYAxis(0).getTitle().setText( "Metric Value" );
 
@@ -136,7 +140,7 @@ public abstract class GraphEditor extends GraphEditorBase {
 	 * @param type
 	 * @return
 	 */
-	protected abstract String getXAxisTitle(ThreadLevelDataFile data);
+	protected abstract String getXAxisTitle();
 
 	/*****
 	 * retrieve the value of Xs
@@ -145,7 +149,7 @@ public abstract class GraphEditor extends GraphEditorBase {
 	 * @param metric
 	 * @return
 	 */
-	protected abstract double[] getValuesX(ThreadLevelDataManager objManager, Scope scope, MetricRaw metric);
+	protected abstract double[] getValuesX(Scope scope, MetricRaw metric);
 	
 	/*****
 	 * retrieve the value of Y
@@ -154,7 +158,7 @@ public abstract class GraphEditor extends GraphEditorBase {
 	 * @param metric
 	 * @return
 	 */
-	protected abstract double[] getValuesY(ThreadLevelDataManager objManager, Scope scope, MetricRaw metric)
+	protected abstract double[] getValuesY(Scope scope, MetricRaw metric)
 			 throws IOException;
 
 

@@ -4,19 +4,16 @@ import java.io.IOException;
 
 import edu.rice.cs.hpc.data.experiment.metric.MetricRaw;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
-import edu.rice.cs.hpc.viewer.metric.ThreadLevelDataFile;
-import edu.rice.cs.hpc.viewer.metric.ThreadLevelDataManager;
 
 public class GraphEditorPlotSort extends GraphEditor {
 
     public static final String ID = "edu.rice.cs.hpc.viewer.graph.GraphEditorPlotSort";
 
 
-	//@Override
-	protected double[] getValuesX(ThreadLevelDataManager objDataManager, 
-			Scope scope, MetricRaw metric) {
+	@Override
+	protected double[] getValuesX(Scope scope, MetricRaw metric) {
 
-		double x_values[] = objDataManager.getProcessIDsDouble(metric.getID());
+		double x_values[] = threadData.getProcessIDsDouble(metric.getID());
 		double sequence_x[] = new double[x_values.length];
 		for (int i=0; i<x_values.length; i++) {
 			sequence_x[i] = (double) i;
@@ -26,13 +23,12 @@ public class GraphEditorPlotSort extends GraphEditor {
 
 
 
-	//@Override
-	protected double[] getValuesY(ThreadLevelDataManager objDataManager, 
-			Scope scope, MetricRaw metric) throws IOException {
+	@Override
+	protected double[] getValuesY(Scope scope, MetricRaw metric) throws IOException {
 
 		double y_values[] = null;
 		{
-			y_values = objDataManager.getMetrics( metric, scope.getCCTIndex());
+			y_values = threadData.getMetrics( metric, scope.getCCTIndex());
 			
 			java.util.Arrays.sort(y_values);
 		}			
@@ -41,8 +37,8 @@ public class GraphEditorPlotSort extends GraphEditor {
 
 
 
-	//@Override
-	protected String getXAxisTitle(ThreadLevelDataFile data) {
+	@Override
+	protected String getXAxisTitle() {
 		return "Rank in Sorted Order";
 	}
 
