@@ -206,7 +206,7 @@ public class DataPlot extends DataCommon
 		
 		final int INDEX_PLOT_SIZE = Constants.SIZEOF_INT  + Constants.SIZEOF_INT +
 								 	Constants.SIZEOF_LONG + Constants.SIZEOF_LONG; 
-		final int num_index = (int) ((index_length - index_start)/INDEX_PLOT_SIZE);
+		final int num_index = (int) (index_length/INDEX_PLOT_SIZE);
 		
 		table_index  = new HashMap<Integer, DataPlot.PlotIndex>(num_index); 
 		
