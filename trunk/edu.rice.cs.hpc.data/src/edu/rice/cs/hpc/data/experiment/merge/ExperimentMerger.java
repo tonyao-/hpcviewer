@@ -54,6 +54,16 @@ public class ExperimentMerger
 		return merge(exp1, exp2, type, parent_dir, verbose);
 	}
 	
+	/******
+	 * Merging two experiments and specifying the output directory
+	 * 
+	 * @param exp1
+	 * @param exp2
+	 * @param type
+	 * @param parent_dir
+	 * @param verbose
+	 * @return the new merged database
+	 */
 	static public Experiment merge(Experiment exp1, Experiment exp2, MergeType type, 
 			String parent_dir, boolean verbose) {
 		
@@ -106,12 +116,6 @@ public class ExperimentMerger
 		}
 		
 		RootScope root2 = (RootScope) exp2.getRootScopeChildren()[root_type];	
-
-		/*RootScope root2_copy = new RootScope(merged, 
-				"Invisible Outer Root Scope", RootScopeType.Invisible);
-
-		DuplicateScopeTreesVisitor visitor = new DuplicateScopeTreesVisitor(root2_copy);
-		root2.dfsVisitScopeTree(visitor);*/
 		
 		// -----------------------------------------------
 		// step 5: merge the two experiments
@@ -120,7 +124,6 @@ public class ExperimentMerger
 		mergeScopeTrees(exp1,new DuplicateScopeTreesVisitor(rootScope), root_type);		
 		
 		RootScope root1 = (RootScope) merged.getRootScopeChildren()[0];	
-		//RootScope root2_copy_cct = (RootScope) root2_copy.getChildAt(0);
 
 		final int metricCount = exp1.getMetricCount();
 		new TreeSimilarity(metricCount, root1, root2, verbose);
@@ -147,16 +150,7 @@ public class ExperimentMerger
 		for (int i=0; i<m1.length; i++) {
 			// add metric into the merged list
 			BaseMetric mm = m1[i].duplicate();
-			mm.setIndex(i);
-			// update the derived metric's experiment
-			if (mm instanceof DerivedMetric)
-			{
-				((DerivedMetric)mm).setExperiment(exp);
-			}
-			
-			setMetricCombinedName(1, mm);
-			
-			metricList.add(mm);
+			addMetric(mm, i, exp, metricList);
 		}
 		
 		// attention: hpcprof doesn't guarantee the ID of metric starts with zero
@@ -172,27 +166,43 @@ public class ExperimentMerger
 		for (int i=0; i<m2.length; i++) {
 			final BaseMetric m = m2[i].duplicate();
 
-			setMetricCombinedName(2, m);
-			
-			// recompute the index of the metric from the second experiment
+			// change the short name (or ID) of the metric since the old ID is already
+			// taken by previous experiment
 			final int index_new = m1_last_index + m.getIndex();
-			m.setIndex( m1_last + i +1 );
-			
-			// reset the key
 			m.setShortName( String.valueOf(index_new) );
-			// update the derived metric's experiment
-			if (m instanceof DerivedMetric)
-			{
-				((DerivedMetric)m).setExperiment(exp);
-			}
 			
-			metricList.add(m);
+			addMetric(m, m1_last + i +1 , exp, metricList);
 		}
 		
 		return metricList;
 	}
 
 
+	/*********
+	 * Add a new metric into a metric list
+	 * 
+	 * @param source : metric to duplicate
+	 * @param index  : the new index
+	 * @param exp    : experiment to which the metric is hosted
+	 * @param metricList : the list of metrics
+	 */
+	private static void addMetric(BaseMetric source, int index, Experiment exp, List<BaseMetric> metricList)
+	{
+		// add metric into the merged list
+		BaseMetric mm = source.duplicate();
+		mm.setIndex(index);
+		// update the derived metric's experiment
+		if (mm instanceof DerivedMetric)
+		{
+			((DerivedMetric)mm).setExperiment(exp);
+		}
+		
+		setMetricCombinedName(1, mm);
+		
+		metricList.add(mm);
+
+	}
+	
 	/***
 	 * recursively merge trees
 	 * 
