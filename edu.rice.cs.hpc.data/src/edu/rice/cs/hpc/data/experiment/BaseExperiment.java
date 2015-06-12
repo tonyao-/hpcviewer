@@ -146,8 +146,8 @@ public abstract class BaseExperiment implements IExperiment
 	public void open(File fileExperiment, IUserData<String, String> userData, boolean need_metric)
 			throws	Exception
 	{
-		databaseRepresentation = new LocalDatabaseRepresentation(fileExperiment, this, userData, need_metric);
-		databaseRepresentation.open();
+		databaseRepresentation = new LocalDatabaseRepresentation(fileExperiment, userData, need_metric);
+		databaseRepresentation.open(this);
 		open_finalize();
 	}
 	
@@ -162,8 +162,8 @@ public abstract class BaseExperiment implements IExperiment
 	 *****/
 	public void open(InputStream expStream, IUserData<String, String> userData,
 		String name) throws Exception {
-		databaseRepresentation = new RemoteDatabaseRepresentation(this, expStream, userData, name);
-		databaseRepresentation.open();
+		databaseRepresentation = new RemoteDatabaseRepresentation(expStream, userData, name);
+		databaseRepresentation.open(this);
 		open_finalize();
 	}
 
@@ -176,7 +176,7 @@ public abstract class BaseExperiment implements IExperiment
 	{
 		if (databaseRepresentation != null)
 		{
-			databaseRepresentation.open();
+			databaseRepresentation.open(this);
 			open_finalize();
 		} else {
 			throw new Exception("Database has not been opened.");

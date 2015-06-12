@@ -135,9 +135,20 @@ public class DerivedMetric extends BaseMetric {
 		return expression;
 	}
 
-	//@Override
+	@Override
 	public BaseMetric duplicate() {
 		return new DerivedMetric(experiment, expression, displayName, shortName, index, annotationType, metricType);
 	}
 	
+	/****
+	 * update the experiment of this derived metric
+	 * 
+	 * @param experiment
+	 */
+	public void setExperiment(Experiment experiment)
+	{
+		this.experiment = experiment;
+		// updating as well the variable mapping to metrics
+		varMap.setExperiment(experiment);
+	}
 }

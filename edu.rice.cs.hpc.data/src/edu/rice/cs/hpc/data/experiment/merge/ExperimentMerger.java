@@ -148,6 +148,11 @@ public class ExperimentMerger
 			// add metric into the merged list
 			BaseMetric mm = m1[i].duplicate();
 			mm.setIndex(i);
+			// update the derived metric's experiment
+			if (mm instanceof DerivedMetric)
+			{
+				((DerivedMetric)mm).setExperiment(exp);
+			}
 			
 			setMetricCombinedName(1, mm);
 			
@@ -175,6 +180,11 @@ public class ExperimentMerger
 			
 			// reset the key
 			m.setShortName( String.valueOf(index_new) );
+			// update the derived metric's experiment
+			if (m instanceof DerivedMetric)
+			{
+				((DerivedMetric)m).setExperiment(exp);
+			}
 			
 			metricList.add(m);
 		}

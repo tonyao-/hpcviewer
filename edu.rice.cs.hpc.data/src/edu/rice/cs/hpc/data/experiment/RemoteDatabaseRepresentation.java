@@ -10,10 +10,9 @@ public class RemoteDatabaseRepresentation implements IDatabaseRepresentation
 	final private InputStream expStream;
 	final private IUserData<String, String> userData;
 	final private String name;
-	final private BaseExperiment experiment;
 	private ExperimentFileXML fileXML;
 	
-	public RemoteDatabaseRepresentation( BaseExperiment experiment,
+	public RemoteDatabaseRepresentation( 
 			InputStream expStream, 
 			IUserData<String, String> userData,
 			String name)
@@ -21,7 +20,6 @@ public class RemoteDatabaseRepresentation implements IDatabaseRepresentation
 		this.expStream 	= expStream;
 		this.userData  	= userData;
 		this.name		= name;
-		this.experiment = experiment;
 	}
 	
 	@Override
@@ -30,7 +28,7 @@ public class RemoteDatabaseRepresentation implements IDatabaseRepresentation
 	}
 
 	@Override
-	public void open() throws Exception {
+	public void open(BaseExperiment experiment) throws Exception {
 		
 		if (fileXML == null) {
 			fileXML = new ExperimentFileXML();
@@ -40,7 +38,7 @@ public class RemoteDatabaseRepresentation implements IDatabaseRepresentation
 
 	@Override
 	public IDatabaseRepresentation duplicate() {
-		RemoteDatabaseRepresentation dup = new RemoteDatabaseRepresentation(experiment, expStream, userData, name);
+		RemoteDatabaseRepresentation dup = new RemoteDatabaseRepresentation(expStream, userData, name);
 		dup.fileXML = new ExperimentFileXML();
 		
 		return dup;

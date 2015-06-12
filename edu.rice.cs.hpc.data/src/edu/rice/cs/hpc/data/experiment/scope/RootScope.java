@@ -100,11 +100,16 @@ public IMetricValueCollection getMetricValueCollection(Scope scope) throws IOExc
 					+ experiment.getDbFilename(BaseExperiment.Db_File_Type.DB_SUMMARY);
 			dataSummary.open(filename);
 		}
-		MetricValueCollection3 col = new MetricValueCollection3(dataSummary, this, scope);
+		MetricValueCollection3 col = new MetricValueCollection3(this, scope);
 		return col;
 	} else {
 		return new MetricValueCollection2(metric_size);		
 	}
+}
+
+public DataSummary getDataSummary()
+{
+	return dataSummary;
 }
 
 
