@@ -10,18 +10,15 @@ public class LocalDatabaseRepresentation implements IDatabaseRepresentation
 	final private File fileExperiment;
 	final private IUserData<String, String> userData; 
 	final private boolean need_metric;
-	final private BaseExperiment experiment;
 	private ExperimentFileXML fileXML;
 
 	public LocalDatabaseRepresentation(File fileExperiment, 
-			BaseExperiment experiment,
 			IUserData<String, String> userData, 
 			boolean need_metric)
 	{
 		this.fileExperiment = fileExperiment;
 		this.userData		= userData;
 		this.need_metric	= need_metric;
-		this.experiment		= experiment;
 	}
 	
 	@Override
@@ -30,7 +27,7 @@ public class LocalDatabaseRepresentation implements IDatabaseRepresentation
 	}
 
 	@Override
-	public void open() throws Exception
+	public void open(BaseExperiment experiment) throws Exception
 	{		
 		if (fileXML == null) {
 			fileXML = new ExperimentFileXML();
@@ -40,7 +37,7 @@ public class LocalDatabaseRepresentation implements IDatabaseRepresentation
 
 	@Override
 	public IDatabaseRepresentation duplicate() {
-		LocalDatabaseRepresentation dup = new LocalDatabaseRepresentation(fileExperiment, experiment, userData, need_metric);
+		LocalDatabaseRepresentation dup = new LocalDatabaseRepresentation(fileExperiment, userData, need_metric);
 		dup.fileXML = new ExperimentFileXML();
 		
 		return dup;

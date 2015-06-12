@@ -26,13 +26,11 @@ import edu.rice.cs.hpc.data.experiment.scope.Scope;
  ******************************************************************/
 public class MetricValueCollection3 implements IMetricValueCollection 
 {
-	final private DataSummary data;
 	final private RootScope root;
 	private MetricValue []values;
 	
-	public MetricValueCollection3(DataSummary data, RootScope root, Scope scope) throws IOException
+	public MetricValueCollection3(RootScope root, Scope scope) throws IOException
 	{
-		this.data 	 = data;
 		this.root	 = root;
 	}
 	
@@ -44,7 +42,7 @@ public class MetricValueCollection3 implements IMetricValueCollection
 			// create and initialize the first metric values instance
 			BaseExperimentWithMetrics exp = (BaseExperimentWithMetrics) root.getExperiment();
 			int metric_size = exp.getMetricCount();
-			
+			final DataSummary data = root.getDataSummary();
 			// initialize
 			try {
 				values = data.getMetrics(scope.getCCTIndex(), exp);

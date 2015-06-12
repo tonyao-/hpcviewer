@@ -36,13 +36,11 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import edu.rice.cs.hpc.common.ui.Util;
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
 import edu.rice.cs.hpc.data.experiment.metric.DerivedMetric;
 import edu.rice.cs.hpc.data.experiment.metric.Metric;
 import edu.rice.cs.hpc.data.experiment.metric.MetricType;
-import edu.rice.cs.hpc.viewer.util.Utilities;
 import edu.rice.cs.hpc.viewer.window.ViewerWindow;
 import edu.rice.cs.hpc.viewer.window.ViewerWindowManager;
 
@@ -337,6 +335,7 @@ public class MetricPropertyDialog extends TitleAreaDialog
 	 * @param exp
 	 */
 	private void setElements(Experiment exp) {
+		this.experiment = exp;
 		final ArrayList<PropertiesModel> arrElements = createInput(exp);
 		viewer.setInput(arrElements);
 		viewer.refresh();
@@ -371,7 +370,6 @@ public class MetricPropertyDialog extends TitleAreaDialog
 		
 		if (metric instanceof DerivedMetric) {
 
-			Experiment experiment = Utilities.getActiveExperiment( Util.getActiveWindow() );
 			ExtDerivedMetricDlg dialog = new ExtDerivedMetricDlg( getShell(), experiment, 
 					experiment.getRootScope().getSubscope(0) );
 			
