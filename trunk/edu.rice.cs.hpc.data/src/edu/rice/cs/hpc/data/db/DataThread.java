@@ -8,6 +8,7 @@ import java.nio.IntBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.charset.Charset;
 
 import edu.rice.cs.hpc.data.util.Constants;
 
@@ -123,18 +124,34 @@ public class DataThread extends DataCommon
 		byte []buffer = new byte[MESSAGE_SIZE];
 		
 		int num_titles = (int) (string_length / MESSAGE_SIZE);
-		StringBuffer title = new StringBuffer();
+		
+		// Usually UTF-8 is good enough for most platforms
+		Charset charset = Charset.forName("UTF-8");
+		
+		// required to instantiate explicitly, otherwise Java 6 on Linux
+		// will initialize with "null" prefix (literally, it is really "null" 
+		// 	characters
+		message_title = new String();
 		
 		for (int i=0; i<num_titles; i++)
 		{
 			file.read(buffer);
-			if (i>0) {
-				title.append(".");
-			}
-			title.append(new String(buffer));
-		}
-		message_title  = title.toString();
+			
+			// skip the zeros bytes. Java will not stop automatically when it reach null
+			// see the javadoc for further details
 
+			int j=0;
+			for(; j<MESSAGE_SIZE && buffer[j] != 0; j++)	{}
+			
+			// converting from byte to sting for a specific length
+			// using UTF-8 character mapping to ensure portability
+			final String s = new String(buffer, 0, j, charset);
+			
+			if (i>0)
+				message_title += ".";
+			
+			message_title += s;
+		}
 		int num_ranks = (int) (index_length / Constants.SIZEOF_INT);
 		ranks = new int[num_ranks];
 		
