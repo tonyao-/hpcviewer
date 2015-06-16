@@ -1,5 +1,5 @@
 
-package edu.rice.cs.hpc.data.experiment.metric.version3;
+package edu.rice.cs.hpc.data.db;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
@@ -11,7 +11,6 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.Random;
 
 import edu.rice.cs.hpc.data.util.Constants;
-import edu.rice.cs.hpc.data.db.DataCommon;
 import edu.rice.cs.hpc.data.experiment.BaseExperimentWithMetrics;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
 import edu.rice.cs.hpc.data.experiment.metric.MetricValue;
