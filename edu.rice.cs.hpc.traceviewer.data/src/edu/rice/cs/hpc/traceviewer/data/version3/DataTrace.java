@@ -1,6 +1,5 @@
 package edu.rice.cs.hpc.traceviewer.data.version3;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
@@ -12,6 +11,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.Random;
 
 import edu.rice.cs.hpc.data.util.Constants;
+import edu.rice.cs.hpc.data.util.LargeByteBuffer;
 import edu.rice.cs.hpc.data.db.DataCommon;
 import edu.rice.cs.hpc.traceviewer.data.db.DataRecord;
 
@@ -40,6 +40,7 @@ public class DataTrace extends DataCommon
 	
 	private RandomAccessFile file;
 	private FileChannel channel;
+	private LargeByteBuffer lbBuffer;
 
 	private long []table_offset;
 	private long []table_length;
@@ -252,6 +253,7 @@ public class DataTrace extends DataCommon
 	{
 		channel.close();
 		file.close();
+		lbBuffer.dispose();
 	}
 	// --------------------------------------------------------------------
 	// For the sake of compatibility, we need to provide these methods
@@ -270,10 +272,9 @@ public class DataTrace extends DataCommon
 	 * @throws IOException
 	 */
 	@Deprecated
-	synchronized public long getLong(long position) throws IOException
+	public long getLong(long position) throws IOException
 	{
-		file.seek(position);
-		return file.readLong();
+		return lbBuffer.getLong(position);
 	}
 	
 	@Deprecated
@@ -290,10 +291,9 @@ public class DataTrace extends DataCommon
 	 * @return
 	 * @throws IOException
 	 */
-	synchronized public int getInt(long position) throws IOException
+	public int getInt(long position) throws IOException
 	{
-		file.seek(position);
-		return file.readInt();
+		return lbBuffer.getInt(position);
 	}
 	
 	/**
@@ -309,21 +309,20 @@ public class DataTrace extends DataCommon
 	 * @return
 	 * @throws IOException
 	 */
-	synchronized public double getDouble(long position) throws IOException
+	public double getDouble(long position) throws IOException
 	{
-		MappedByteBuffer mbb = channel.map(MapMode.READ_ONLY, position, Constants.SIZEOF_LONG);
-		LongBuffer lb = mbb.asLongBuffer();
-		return lb.get();
+		return lbBuffer.getDouble(position);
 	}
 	
 	// --------------------------------------------------------------------
 	// Private methods
 	// --------------------------------------------------------------------
 	
-	private void open_internal(String filename) throws FileNotFoundException
+	private void open_internal(String filename) throws IOException
 	{
 		file 	= new RandomAccessFile(filename, "r");
 		channel = file.getChannel();
+		lbBuffer = new LargeByteBuffer(channel, RECORD_ENTRY_SIZE, RECORD_ENTRY_SIZE);
 	}
 
 
