@@ -199,7 +199,9 @@ public class ExperimentView {
 		}		// set the experiment class used for the database
         
 		// the view index has values from 0-4 and is used to index arrays (layout folders and possibly others)
-		final String viewIdx = Integer.toString(vWin.reserveDatabaseNumber());
+		final int    index   = vWin.reserveDatabaseNumber();
+		final String viewIdx = Integer.toString(index);
+		db.setWindowIndex(index);
 
 		// next, we retrieve all children of the scope and display them in separate views
 		Object []rootChildren = experiment.getRootScopeChildren();
