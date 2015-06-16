@@ -2,6 +2,7 @@ package edu.rice.cs.hpc.data.experiment.metric.version3;
 
 import java.io.IOException;
 
+import edu.rice.cs.hpc.data.db.DataSummary;
 import edu.rice.cs.hpc.data.experiment.BaseExperimentWithMetrics;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
 import edu.rice.cs.hpc.data.experiment.metric.DerivedMetric;
