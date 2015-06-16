@@ -47,6 +47,9 @@ public abstract class MergeDatabase extends AbstractHandler
 		final IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
 		final ViewerWindow vWin = ViewerWindowManager.getViewerWindow(window);
 		final Experiment[] dbArray = vWin.getExperiments();
+		
+		// need to get the display here before Eclipse removes the pointer on the current display widget
+		final Display display = HandlerUtil.getActiveShell(event).getDisplay();
 
 		// merge is enabled if the number of open databases is more than 1
 		if (dbArray.length > 1) 
@@ -81,7 +84,6 @@ public abstract class MergeDatabase extends AbstractHandler
 				}
 			}
 			// try to asynchronously merge the experiments. it may take some time to finish
-			Display display = HandlerUtil.getActiveShell(event).getDisplay();
 			display.asyncExec(new Runnable(){
 
 				////@Override
