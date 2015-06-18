@@ -46,6 +46,7 @@ public class FilterScopeVisitor implements IScopeVisitor
 	/**** flag to allow the dfs to continue to go deeper or not.  
 	      For inclusive filter, we should stop going deeper      *****/
 	private boolean need_to_continue;
+	private boolean scope_has_changed;
 	
 	/***********
 	 * Constructor to filter a cct
@@ -59,7 +60,8 @@ public class FilterScopeVisitor implements IScopeVisitor
 		this.filter 		  = filter;
 		this.rootMetricValues = rootOriginalCCT.getMetricValues();
 		this.rootOriginalCCT  = rootOriginalCCT;
-		need_to_continue = true;
+		need_to_continue 	  = true;
+		scope_has_changed 	  = false;
 		
 		experiment = rootOriginalCCT.getExperiment();
 		if (experiment instanceof Experiment)
@@ -76,6 +78,11 @@ public class FilterScopeVisitor implements IScopeVisitor
 	public boolean needToContinue()
 	{
 		return need_to_continue;
+	}
+	
+	public boolean scopeHasChanged()
+	{
+		return scope_has_changed;
 	}
 	
 	//----------------------------------------------------
@@ -95,9 +102,17 @@ public class FilterScopeVisitor implements IScopeVisitor
 	public void visit(StatementRangeScope scope, 	ScopeVisitType vt) { mergeInsert(scope, vt); }
 	public void visit(LineScope scope, 				ScopeVisitType vt) { mergeInsert(scope, vt); }
 
-	
-	private void mergeInsert(Scope scope, ScopeVisitType vt) {
-		
+	/*******
+	 * Filter the scope (if it matches one of the filter pattern), and remove also
+	 * the descendants if necessary
+	 * 
+	 * @param scope
+	 * @param vt
+	 * 
+	 * @return boolean true if the scope itself has been removed, false otherwise
+	 */
+	private boolean mergeInsert(Scope scope, ScopeVisitType vt) {
+		scope_has_changed = false;
 		if (vt == ScopeVisitType.PreVisit) {
 			// Previsit
 			Scope parent = scope.getParentScope();
@@ -105,12 +120,12 @@ public class FilterScopeVisitor implements IScopeVisitor
 			FilterAttribute filterAttribute = filter.getFilterAttribute(scope.getName());
 			if (filterAttribute != null)
 			{
+				need_to_continue = (filterAttribute.filterType == FilterAttribute.Type.Self_Only);
 				if (filterAttribute.filterType == FilterAttribute.Type.Children_Only)
 				{
 					//-------------------------------------------------------------------
-					// Filtering only the children, not the scope itself
+					// merge with the metrics of the children
 					//-------------------------------------------------------------------
-					need_to_continue = false;
 					if (metrics != null)
 					{
 						// glue the metrics of all the children to the scope
@@ -123,18 +138,20 @@ public class FilterScopeVisitor implements IScopeVisitor
 								
 							}
 						}
-						// remove all the children
-						for (Object child: scope.getChildren())
-						{
-							scope.remove((TreeNode) child);
-						}
+					}
+					//-------------------------------------------------------------------
+					// Filtering only the children, not the scope itself.
+					// remove all the children
+					//-------------------------------------------------------------------
+					for (Object child: scope.getChildren())
+					{
+						scope.remove((TreeNode) child);
 					}
 				} else
 				{
 					//-------------------------------------------------------------------
 					// Filtering the scope or/and the children
 					//-------------------------------------------------------------------
-					need_to_continue = (filterAttribute.filterType == FilterAttribute.Type.Self_Only);
 					if (metrics  != null)
 					{
 						if (!(scope instanceof LineScope))
@@ -144,8 +161,8 @@ public class FilterScopeVisitor implements IScopeVisitor
 							mergeMetrics(parent, scope, need_to_continue);
 						}
 					}
-					removeChild(scope, filterAttribute.filterType);
-					
+					removeChild(scope, vt, filterAttribute.filterType);
+					scope_has_changed = true;
 				}
 			} else 
 			{
@@ -155,6 +172,7 @@ public class FilterScopeVisitor implements IScopeVisitor
 		} else 
 		{ // PostVisit
 		}
+		return scope_has_changed;
 	}
 	
 	/********
@@ -164,16 +182,17 @@ public class FilterScopeVisitor implements IScopeVisitor
 	 * @param childToRemove : scope to remove
 	 * @param filterType : filter type
 	 */
-	private void removeChild(Scope childToRemove, FilterAttribute.Type filterType)
+	private void removeChild(Scope childToRemove, ScopeVisitType vt, FilterAttribute.Type filterType)
 	{
 		// skip to current scope
 		Scope parent = childToRemove.getParentScope();
 		parent.remove(childToRemove);
+		System.out.println("[" + childToRemove.getCCTIndex() + "]\t" + parent.getCCTIndex() + " rem " );
 		
 		// remove its children and glue it the parent
 		if (filterType == FilterAttribute.Type.Self_Only)
 		{
-			addGrandChildren(parent, childToRemove);
+			addGrandChildren(parent, vt, childToRemove);
 		}
 	}
 	
@@ -182,15 +201,20 @@ public class FilterScopeVisitor implements IScopeVisitor
 	 * @param parent
 	 * @param scope_to_remove
 	 */
-	private void addGrandChildren(Scope parent, Scope scope_to_remove)
+	private void addGrandChildren(Scope parent, ScopeVisitType vt, Scope scope_to_remove)
 	{
 		Object []children = scope_to_remove.getChildren();
 		if (children != null)
 		{
 			for(Object child : children)
 			{
-				parent.add((TreeNode) child);
-				((TreeNode)child).setParent(parent);
+				Scope child_scope = (Scope) child;
+				parent.add(child_scope);
+				child_scope.setParent(parent);
+				
+				System.out.println(" [" +  scope_to_remove.getCCTIndex() + "]\t" + parent.getCCTIndex() + " add " + child_scope.getCCTIndex() + " , t: " + parent.getChildCount());
+				// check if the child needs to be filtered
+				//mergeInsert(child_scope, vt);
 			}
 		}
 	}

@@ -23,9 +23,8 @@ import edu.rice.cs.hpc.data.experiment.scope.filters.ExclusiveOnlyMetricPropagat
  */
 public class ExclusiveCallingContextVisitor implements IScopeVisitor {
 
-	private ExclusiveOnlyMetricPropagationFilter filterExclusive;
-	private int numberOfPrimaryMetrics;
-
+	final private ExclusiveOnlyMetricPropagationFilter filterExclusive;
+	final private int numberOfPrimaryMetrics;
 	/**
 	 * 
 	 */
@@ -59,8 +58,11 @@ public class ExclusiveCallingContextVisitor implements IScopeVisitor {
 	public void visit(CallSiteScope scope, ScopeVisitType vt) {
 		if (vt == ScopeVisitType.PostVisit) {
 			Scope parent = scope.getParentScope();
-			if(parent != null)
-				parent.accumulateMetrics(scope.getLineScope(), this.filterExclusive, numberOfPrimaryMetrics);
+			if(parent != null) {
+				// accumulate the value of the call into the scope
+				LineScope lineScope = scope.getLineScope();
+				parent.accumulateMetrics(lineScope, this.filterExclusive, numberOfPrimaryMetrics);
+			}
 		}
 
 	}

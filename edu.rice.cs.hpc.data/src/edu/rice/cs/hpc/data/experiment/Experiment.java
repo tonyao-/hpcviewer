@@ -185,11 +185,11 @@ public class Experiment extends BaseExperimentWithMetrics
 	protected void copyMetricsToPartner(Scope scope, MetricType sourceType, MetricValuePropagationFilter filter) {
 		for (int i = 0; i< this.getMetricCount(); i++) {
 			BaseMetric metric = this.getMetric(i);
-			// Laksono 2009.12.11: aggregate metrc doesn't have partner
+			// Laksono 2009.12.11: aggregate metric doesn't have partner
 			if (metric instanceof Metric) {
 				if (metric.getMetricType() == sourceType) {
-					// laksono hack bug fix: the partner is "always" the next metric
-					int partner = i+1; 
+					// get the partner index (if the metric exclusive, its partner is inclusive)
+					int partner = metric.getPartner(); 
 					copyMetric(scope, scope, i, partner, filter);
 				}
 			} else if (metric instanceof AggregateMetric) {
