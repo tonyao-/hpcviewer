@@ -36,7 +36,7 @@ public class DataPlot extends DataCommon
 	
 	private RandomAccessFile file;
 	
-	private HashMap<Integer, PlotIndex> table_index;
+	private HashMap<PlotIndexKey, PlotIndexValue> table_index;
 	
 	
 	//////////////////////////////////////////////////////////////////////////
@@ -117,12 +117,13 @@ public class DataPlot extends DataCommon
 		Random r = new Random();
 		for(int i=0; i<10; i++)
 		{
-			int index = r.nextInt(table_index.size() - 1);
-			PlotIndex pi = table_index.get(index);
+			int index  = r.nextInt(table_index.size() - 1);
+			int metric = r.nextInt(2);
+			PlotIndexValue pi = table_index.get(new PlotIndexKey(index, metric));
 			if (pi != null)
 			{
 				out.format("[%d]\t met-id:%d, offset: %d, count: %d\n", 
-						index, pi.metric_id, pi.offset, pi.count);
+						index, metric, pi.offset, pi.count);
 				try {
 					DataPlotEntry []entry = getPlotEntry(index, 0);
 					if (entry != null) 
@@ -160,7 +161,10 @@ public class DataPlot extends DataCommon
 	{
 		checkData();
 		
-		PlotIndex pi = table_index.get(cct);
+		PlotIndexValue pi = table_index.get(new PlotIndexKey(cct, metric));
+		if (pi == null)
+			// there is no data for the given cct and metric
+			return null;
 		file.seek(pi.offset);
 		byte []buffer = new byte[PLOT_ENTRY_SIZE * pi.count];
 		file.readFully(buffer);
@@ -208,26 +212,51 @@ public class DataPlot extends DataCommon
 								 	Constants.SIZEOF_LONG + Constants.SIZEOF_LONG; 
 		final int num_index = (int) (index_length/INDEX_PLOT_SIZE);
 		
-		table_index  = new HashMap<Integer, DataPlot.PlotIndex>(num_index); 
+		table_index  = new HashMap<PlotIndexKey, PlotIndexValue>(num_index); 
 		
 		for (int i=0; i<num_index; i++)
 		{
-			int cct_id 	  = byteBuffer.getInt();
-			PlotIndex idx = new PlotIndex();
-			idx.metric_id = byteBuffer.getInt();
-			idx.offset 	  = byteBuffer.getLong();
-			idx.count	  = (int) byteBuffer.getLong();
+			int cct_id 	     = byteBuffer.getInt();
+			int metric_id    = byteBuffer.getInt();
+			PlotIndexKey idx = new PlotIndexKey(cct_id, metric_id);
 			
-			table_index.put(cct_id, idx);
+			PlotIndexValue val = new PlotIndexValue();
+			val.offset 	  = byteBuffer.getLong();
+			val.count	  = (int) byteBuffer.getLong();
+			
+			table_index.put(idx, val);
 		}
 		channel.close();
 		file.close();
 	}
 
-	
-	private static class PlotIndex
+	private static class PlotIndexKey
 	{
-		public int metric_id;
+		int cct_index, metric_id;
+		
+		public PlotIndexKey(int cct_index, int metric_id)
+		{
+			this.cct_index = cct_index;
+			this.metric_id = metric_id;
+		}
+		
+		@Override
+		public int hashCode()
+		{
+			return (metric_id << 24 + cct_index);
+		}
+		
+		@Override
+		public boolean equals(Object o) 
+		{
+			if (this == o) return true;
+			if (!(o instanceof PlotIndexKey)) return false;
+			PlotIndexKey key = (PlotIndexKey) o;
+			return cct_index == key.cct_index && metric_id == key.metric_id;
+		}
+	}
+	private static class PlotIndexValue
+	{
 		public long offset;
 		public int count;
 	}

@@ -63,13 +63,20 @@ public class ThreadDataCollection3 implements IThreadDataCollection
 
 	@Override
 	public double[] getMetrics(long nodeIndex, int metricIndex, int numMetrics)
-			throws IOException {
-		final DataPlotEntry []entry = data_plot.getPlotEntry((int) nodeIndex, metricIndex);
+			throws IOException 
+			{
 		final int num_ranks 		= data_thread.getParallelismRank().length/data_thread.getParallelismLevel();
 		final double []metrics		= new double[num_ranks];
-		for(DataPlotEntry e : entry)
-		{
-			metrics[e.tid] = e.metval;
+
+		final DataPlotEntry []entry = data_plot.getPlotEntry((int) nodeIndex, metricIndex);
+		// if there is no plot data in the database, we return an array of zeros
+		// (assuming Java will initialize metrics[] with zeros)
+		if (entry != null)
+		{			
+			for(DataPlotEntry e : entry)
+			{
+				metrics[e.tid] = e.metval;
+			}
 		}
 		return metrics;
 	}
