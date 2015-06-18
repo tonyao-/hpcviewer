@@ -175,6 +175,8 @@ public class TreeNode {
 		if (children != null) {
 			if (index < children.size())
 				return children.get(index);
+			else
+				throw new RuntimeException("Index is not correct: " + index + " bigger than " + children.size());
 		}
 		return null;
 	}

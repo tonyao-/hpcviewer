@@ -16,8 +16,6 @@ package edu.rice.cs.hpc.data.experiment.scope;
 
 
 import java.io.IOException;
-import java.util.Iterator;
-
 import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.BaseExperimentWithMetrics;
 import edu.rice.cs.hpc.data.experiment.metric.AggregateMetric;
@@ -857,18 +855,17 @@ public void dfsVisitFilterScopeTree(FilterScopeVisitor sv) {
 	if (sv.needToContinue())
 	{
 		// during the process of filtering, it is possible the tree has been changed
-		// and the some children may be removed. It is safe to use iterator instead
-		// of traditional array iteration
-		Iterator<TreeNode> iterator = getIterator();
-		if (iterator != null)
+		// and the some children may be removed. 
+		// we will first retrieve the original list of children, and then investigate
+		// one-by-one, even though the list of children has changed.
+		
+		Object []children = getChildren(); // copy the original children
+		if (children != null)
 		{
-			for (int i=0; i<getChildCount(); i++)
+			for(Object child: children)
 			{
-				Scope scope = (Scope) getChildAt(i);
-				if (scope != null)
-				{
-					scope.dfsVisitFilterScopeTree(sv);
-				}
+				Scope scope = (Scope) child;
+				scope.dfsVisitFilterScopeTree(sv);
 			}
 		}
 	}

@@ -18,8 +18,7 @@ import edu.rice.cs.hpc.data.experiment.scope.filters.MetricValuePropagationFilte
 
 public abstract class AbstractInclusiveMetricsVisitor implements IScopeVisitor {
 
-	protected MetricValuePropagationFilter filter;
-
+	final protected MetricValuePropagationFilter filter;
 	public AbstractInclusiveMetricsVisitor(Experiment experiment, MetricValuePropagationFilter currentFilter) {
 		this.filter = currentFilter;
 	}
@@ -50,6 +49,7 @@ public abstract class AbstractInclusiveMetricsVisitor implements IScopeVisitor {
 				if (scope instanceof CallSiteScope) {
 					// inclusive view: add everything
 					accumulateToParent( parent, scope );
+					
 				} else {
 					// New definition of exclusive cost:
 					//	The cost of Outer loop does not include the cost of inner loop 
