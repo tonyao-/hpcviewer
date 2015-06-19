@@ -187,7 +187,6 @@ public class FilterScopeVisitor implements IScopeVisitor
 		// skip to current scope
 		Scope parent = childToRemove.getParentScope();
 		parent.remove(childToRemove);
-		System.out.println("[" + childToRemove.getCCTIndex() + "]\t" + parent.getCCTIndex() + " rem " );
 		
 		// remove its children and glue it the parent
 		if (filterType == FilterAttribute.Type.Self_Only)
@@ -211,10 +210,6 @@ public class FilterScopeVisitor implements IScopeVisitor
 				Scope child_scope = (Scope) child;
 				parent.add(child_scope);
 				child_scope.setParent(parent);
-				
-				System.out.println(" [" +  scope_to_remove.getCCTIndex() + "]\t" + parent.getCCTIndex() + " add " + child_scope.getCCTIndex() + " , t: " + parent.getChildCount());
-				// check if the child needs to be filtered
-				//mergeInsert(child_scope, vt);
 			}
 		}
 	}

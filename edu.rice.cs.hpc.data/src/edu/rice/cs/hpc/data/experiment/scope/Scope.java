@@ -18,8 +18,10 @@ package edu.rice.cs.hpc.data.experiment.scope;
 import java.io.IOException;
 import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.BaseExperimentWithMetrics;
+import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.metric.AggregateMetric;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
+import edu.rice.cs.hpc.data.experiment.metric.DerivedMetric;
 import edu.rice.cs.hpc.data.experiment.metric.IMetricValueCollection;
 import edu.rice.cs.hpc.data.experiment.metric.MetricValue;
 import edu.rice.cs.hpc.data.experiment.scope.filters.MetricValuePropagationFilter;
@@ -561,11 +563,7 @@ public MetricValue getMetricValue(BaseMetric metric)
 public MetricValue getMetricValue(int index)
 {
 	ensureMetricStorage();
-	MetricValue value = MetricValue.NONE;
-    if(metrics != null && index < metrics.size())
-       {
-        value = metrics.getValue(this, index);
-       }
+	MetricValue value = metrics.getValue(this, index);
 
     return value;
 }
