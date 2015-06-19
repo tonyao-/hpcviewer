@@ -90,5 +90,4 @@ public class ThreadDataCollection3 implements IThreadDataCollection
 			e.printStackTrace();
 		}
 	}
-
 }
