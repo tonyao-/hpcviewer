@@ -39,9 +39,11 @@ public class FilterAdd extends AbstractHandler
 		
 		if (dialog.open() == Window.OK)
 		{
-			// add a new filter with the default attribute
-			FilterAttribute attribute = new FilterAttribute();
+			// User clicks ok button: get the attribute and the filter pattern
+			FilterAttribute attribute = dialog.getAttribute();
 			final FilterMap filterMap = FilterMap.getInstance();
+			
+			// save the new pattern to the registry
 			filterMap.put(dialog.getValue(), attribute);
 			
 			// notify changes
