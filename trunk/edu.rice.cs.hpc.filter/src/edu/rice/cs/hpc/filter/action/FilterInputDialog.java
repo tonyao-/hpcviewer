@@ -91,6 +91,10 @@ public class FilterInputDialog extends InputDialog
 				btnDisable.setSelection(true);
 			}
 		}
+		// force to set the tab traversal manually.
+		// Somehow on Linux the tab order is not correct (button first, then the combo)
+		Control []ctab = new Control[] {lblAttribute, cbAttribute, btnEnable, btnDisable};
+		attArea.setTabList(ctab);
 		
 		return container;
 	}

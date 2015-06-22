@@ -18,10 +18,8 @@ package edu.rice.cs.hpc.data.experiment.scope;
 import java.io.IOException;
 import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.BaseExperimentWithMetrics;
-import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.metric.AggregateMetric;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
-import edu.rice.cs.hpc.data.experiment.metric.DerivedMetric;
 import edu.rice.cs.hpc.data.experiment.metric.IMetricValueCollection;
 import edu.rice.cs.hpc.data.experiment.metric.MetricValue;
 import edu.rice.cs.hpc.data.experiment.scope.filters.MetricValuePropagationFilter;
@@ -484,18 +482,56 @@ public void addSubscope(Scope subscope)
 
 
 //////////////////////////////////////////////////////////////////////////
-//	ACCESS TO METRICS													//
+// EXPERIMENT DATABASE 													//
+//////////////////////////////////////////////////////////////////////////
+public BaseExperiment getExperiment() {
+	return root.getExperiment();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Access to RootScope 													//
 //////////////////////////////////////////////////////////////////////////
 
+/*******
+ * set the root scope
+ * @param root
+ */
+public void setRootScope(RootScope root)
+{
+	this.root = root;
+}
+
+/****
+ * get the root scope of this scope
+ * @return
+ */
+public RootScope getRootScope()
+{
+	return root;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//ACCESS TO METRICS													//
+//////////////////////////////////////////////////////////////////////////
+
+/***************************************************************************
+ * Check whether the scope has at least a metric value
+ * @return
+ ***************************************************************************/
 private boolean hasMetrics() 
 {
-	//verifyMetrics();
-	//return (metrics != null && metrics.size()>0);
 	ensureMetricStorage();
-
 	return metrics.hasMetrics(this);
 }
 
+/***************************************************************************
+ * check whether the scope has at least a non-zero metric value
+ * @return true if the scope has at least a non-zero metric value
+ ***************************************************************************/
 public boolean hasNonzeroMetrics() {
 	if (this.hasMetrics())
 		for (int i = 0; i< metrics.size(); i++) {
@@ -506,33 +542,6 @@ public boolean hasNonzeroMetrics() {
 	return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-// EXPERIMENT DATABASE 													//
-//////////////////////////////////////////////////////////////////////////
-public BaseExperiment getExperiment() {
-	return root.getExperiment();
-}
-
-
-public void setRootScope(RootScope root)
-{
-	this.root = root;
-}
-
-public RootScope getRootScope()
-{
-	return root;
-}
-
-/*public void setExperiment(BaseExperiment exp) {
-	this.experiment = exp;
-}*/
-
-
-//===================================================================
-//						METRICS
-//===================================================================
 
 
 /*************************************************************************
@@ -556,9 +565,9 @@ public MetricValue getMetricValue(BaseMetric metric)
 }
 
 
-/***
+/***************************************************************************
   overload the method to take-in the index ---FMZ
-***/
+ ***************************************************************************/
 
 public MetricValue getMetricValue(int index)
 {
@@ -664,7 +673,7 @@ public void backupMetricValues() {
 /***************************************************************************
  * retrieve the default metrics
  * @return
- */
+ ***************************************************************************/
 public IMetricValueCollection getMetricValues() {
 	return this.metrics;
 }
@@ -672,7 +681,7 @@ public IMetricValueCollection getMetricValues() {
 /***************************************************************************
  * set the default metrics
  * @param values
- */
+ ***************************************************************************/
 public void setMetricValues(IMetricValueCollection values) {	
 	this.metrics = values;
 }
@@ -757,30 +766,6 @@ public void safeCombine(Scope source, MetricValuePropagationFilter filter) {
 	
 protected void ensureMetricStorage()
 {	
-/*	verifyMetrics();
-	
-	final BaseExperimentWithMetrics exp = (BaseExperimentWithMetrics) getExperiment();
-	int metric_size = exp.getMetricCount();
-
-	if (metrics.size() < metric_size) {
-		IMetricValueCollection metrics_tmp;
-		try {
-			metrics_tmp = root.getMetricValueCollection(this);
-			for(int i=0; i<metrics.size(); i++)
-			{
-				metrics_tmp.setValue(i, metrics.getValue(this, i));
-			}
-			metrics = metrics_tmp;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-}
-
-private void verifyMetrics()
-{*/
 	if (metrics == null)
 	{
 		try {
