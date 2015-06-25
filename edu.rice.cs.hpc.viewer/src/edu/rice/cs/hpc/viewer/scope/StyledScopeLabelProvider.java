@@ -91,6 +91,20 @@ public class StyledScopeLabelProvider extends StyledCellLabelProvider {
 		}
 	}
 
+	@Override
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.CellLabelProvider#getToolTipText(java.lang.Object)
+	 */
+	public String getToolTipText(Object element)
+	{
+		if (element instanceof Scope)
+		{
+			String text = ((Scope)element).getName();
+			return text;
+		}
+		return null;
+	}
 	
 	/**
 	 * Return the text of the scope tree. By default is the scope name.
