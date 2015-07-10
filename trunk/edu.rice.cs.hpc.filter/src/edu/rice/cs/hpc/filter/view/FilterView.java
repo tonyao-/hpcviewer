@@ -3,7 +3,6 @@ package edu.rice.cs.hpc.filter.view;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -29,7 +28,6 @@ import org.eclipse.ui.services.ISourceProviderService;
 import edu.rice.cs.hpc.common.ui.Util;
 import edu.rice.cs.hpc.data.filter.FilterAttribute;
 import edu.rice.cs.hpc.filter.action.FilterInputDialog;
-import edu.rice.cs.hpc.filter.pattern.PatternValidator;
 import edu.rice.cs.hpc.filter.service.FilterMap;
 import edu.rice.cs.hpc.filter.service.FilterStateProvider;
 import edu.rice.cs.hpc.filter.view.FilterTableViewerFactory;
@@ -95,9 +93,11 @@ public class FilterView extends ViewPart implements IFilterView
 				// save to the registry
 				map.put(key, attribute);
 				map.save();
-				
-				// notify the changes
-				serviceProvider.refresh();
+				if (map.isFilterEnabled())
+				{
+					// notify the changes only if the filter is enabled
+					serviceProvider.refresh();
+				}
 			}	    	
 	    };
 		tableViewer.addCheckStateListener( checkStateListener );
