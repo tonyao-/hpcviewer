@@ -357,18 +357,17 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 
 		if (flat_enc_s != null) {
 			if (!isCyclicDependency(flat_enc_s, objFlat.flat_s)) {
-				// hack code for cyclic dependency
-				// we should create a new copy and attach it to the tree
+				// normal case: no cyclic dependency between the child and the ancestors
+				this.addToTree(flat_enc_s, objFlat.flat_s);
+			} else
+			{	// rare case: cyclic dependency
+				// TODO: we should create a new copy and attach it to the tree
 				// but this will cause an issue for adding metrics and decrement counter
 				// at the moment we just avoid cyclic dependency
 				
-/*				Scope copy = objFlat.flat_s.duplicate();
-				int flat_index = Integer.MAX_VALUE - copy.getFlatIndex();
-				copy.setFlatIndex(flat_index);
-				
-				objFlat.flat_s = copy;*/
-				this.addToTree(flat_enc_s, objFlat.flat_s);
-			} 
+				Scope copy = objFlat.flat_s.duplicate();				
+				this.addToTree(flat_enc_s, copy);
+			}
 		}
 
 		this.addCostIfNecessary(id, objFlat.flat_s, cct_s_metrics, true, true);
@@ -528,9 +527,7 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 			arr_new_scopes[0] = flat_s;
 		}
 		htFlatCostAdded.put(objCode, arr_new_scopes);
-
 	}
-	//int iline = 0; 
 
 	
 	/*************************************************************************
