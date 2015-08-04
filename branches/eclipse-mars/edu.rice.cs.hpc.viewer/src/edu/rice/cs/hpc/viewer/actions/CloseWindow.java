@@ -30,10 +30,12 @@ public class CloseWindow extends AbstractHandler {
 		
 		// close editor windows
 		window.getActivePage().closeAllEditors(false);
+		
+		// remove window registered in the list
+		ViewerWindowManager.removeWindow(window);
+
 		// close the workbench (which will close the application as well)
 		window.close();
-		
-		ViewerWindowManager.removeWindow(window);
 		
 		return null;
 	}

@@ -253,8 +253,9 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 	 *****************************************************************/
 	private String getUniqueFileID(SourceFile file, LoadModuleScope lm)
 	{
-		return lm.getFlatIndex() + "/" + file.getFileID();
+		return lm.getFlatIndex() + ":" + file.getFileID();
 	}
+	
 	
 	/*****************************************************************
 	 * Create the flat view of a file scope
@@ -354,8 +355,20 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 
 		FlatScopeInfo objFlat = this.getFlatScope(cct_s);
 
-		if (flat_enc_s != null)
-			this.addToTree(flat_enc_s, objFlat.flat_s);
+		if (flat_enc_s != null) {
+			if (!isCyclicDependency(flat_enc_s, objFlat.flat_s)) {
+				// normal case: no cyclic dependency between the child and the ancestors
+				this.addToTree(flat_enc_s, objFlat.flat_s);
+			} else
+			{	// rare case: cyclic dependency
+				// TODO: we should create a new copy and attach it to the tree
+				// but this will cause an issue for adding metrics and decrement counter
+				// at the moment we just avoid cyclic dependency
+				
+				Scope copy = objFlat.flat_s.duplicate();				
+				this.addToTree(flat_enc_s, copy);
+			}
+		}
 
 		this.addCostIfNecessary(id, objFlat.flat_s, cct_s_metrics, true, true);
 		return objFlat;
@@ -371,7 +384,7 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 	 * @return
 	 ***********************************************************/
 	private String getID( Scope scope ) {
-		int id = scope.hashCode();
+		int id = scope.getFlatIndex();
 		String hash_id = scope.getClass().getSimpleName();
 		if (hash_id != null) {
 			hash_id = hash_id.substring(0, 2) + id;
@@ -398,10 +411,24 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 			Scope kid = parent.getSubscope(i);
 			if ( this.isTheSameScope(kid, child) )
 				return;
-		}
+		}		
 		this.addChild(parent, child);
 	}
 	
+	private boolean isCyclicDependency(Scope parent, Scope child)
+	{
+		Scope ancestor = parent;
+		while (ancestor != null && !(ancestor instanceof RootScope))
+		{
+			if (ancestor == child) {
+				// cyclic
+				System.err.println("cycle-dependency: " + child.getFlatIndex() + " vs. " + ancestor.getFlatIndex());
+				return true;
+			}
+			ancestor = ancestor.getParentScope();
+		}
+		return false;
+	}
 
 	/***********************************************************
 	 * check if two scopes have the same "content"
@@ -425,8 +452,6 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 	 * @param child
 	 ***********************************************************/
 	private void addChild(Scope parent, Scope child) {
-		if (parent.hashCode() == child.hashCode()) 
-			System.err.println("ERROR: Same ID "+parent.hashCode()+": "+parent + " - " + child);
 		parent.addSubscope(child);
 		child.setParentScope(parent);
 	}
@@ -502,9 +527,7 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 			arr_new_scopes[0] = flat_s;
 		}
 		htFlatCostAdded.put(objCode, arr_new_scopes);
-
 	}
-	//int iline = 0; 
 
 	
 	/*************************************************************************

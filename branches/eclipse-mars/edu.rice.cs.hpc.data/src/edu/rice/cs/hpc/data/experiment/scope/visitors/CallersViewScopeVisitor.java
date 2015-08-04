@@ -40,7 +40,7 @@ public class CallersViewScopeVisitor extends CallerScopeBuilder implements IScop
 	
 	final private ListCombinedScopes listCombinedScopes;
 
-	private Hashtable<Integer, Scope> calleeht = new Hashtable<Integer, Scope>();
+	final private Hashtable<String, Scope> calleeht = new Hashtable<String, Scope>();
 	
 	private RootScope callersViewRootScope;
 	
@@ -164,7 +164,7 @@ public class CallersViewScopeVisitor extends CallerScopeBuilder implements IScop
 		else
 			cct_proc_s = ( (CallSiteScope)cct_s).getProcedureScope();
 		
-		Integer objCode = Integer.valueOf(cct_proc_s.hashCode());
+		String objCode = cct_s.getSourceFile().getFileID() + ":" + cct_proc_s.hashCode();
 
 		ProcedureScope caller_proc = (ProcedureScope) calleeht.get(objCode);
 		
