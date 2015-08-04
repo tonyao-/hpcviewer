@@ -64,10 +64,6 @@
                value="hpcviewer">
          </property>
          <property
-               name="preferenceCustomization"
-               value="plugin_customization.ini">
-         </property>
-         <property
                name="startupProgressRect"
                value="0,275,445,15">
          </property>
@@ -90,6 +86,10 @@
          <property
                name="startupMessageRect"
                value="7,252,445,20">
+         </property>
+         <property
+               name="preferenceCustomization"
+               value="plugin_customization.ini">
          </property>
       </product>
    </extension>
