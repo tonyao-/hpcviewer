@@ -52,6 +52,7 @@ public class ViewerWindow {
 
 	private Command cmdDebugCCT;
 	private Command cmdDebugFlat;
+	private ISourceProviderListener srcProviderListener;
 	
 	/** number of databases (whether has been closed or not) 
 	 *  this number is useful to make sure the view is always unique */
@@ -70,7 +71,7 @@ public class ViewerWindow {
 		// listen to filter change of states
 		final ISourceProviderService service = (ISourceProviderService) window.getService(ISourceProviderService.class);
 		final FilterStateProvider service_provider = (FilterStateProvider) service.getSourceProvider(FilterStateProvider.FILTER_REFRESH_PROVIDER);
-		service_provider.addSourceProviderListener(new ISourceProviderListener() {
+		srcProviderListener = new ISourceProviderListener() {
 
 			@Override
 			public void sourceChanged(int sourcePriority, Map sourceValuesByName) {}
@@ -84,7 +85,8 @@ public class ViewerWindow {
 					filterAllDatabases(filter);
 				}
 			}			
-		});
+		};
+		service_provider.addSourceProviderListener(srcProviderListener);
 	}
 
 	private void filterAllDatabases(boolean filter)
@@ -109,10 +111,10 @@ public class ViewerWindow {
 					}
 				}
 			}
+			final ISourceProviderService service = (ISourceProviderService) winObj.getService(ISourceProviderService.class);
+			DatabaseState databaseState = (DatabaseState) service.getSourceProvider(DatabaseState.DATABASE_NEED_REFRESH);
+			databaseState.refreshDatabase(filter);
 		}
-		final ISourceProviderService service = (ISourceProviderService) winObj.getService(ISourceProviderService.class);
-		DatabaseState databaseState = (DatabaseState) service.getSourceProvider(DatabaseState.DATABASE_NEED_REFRESH);
-		databaseState.refreshDatabase(filter);
 	}
 	
 	/**
@@ -142,7 +144,10 @@ public class ViewerWindow {
 	 * Returns the number of open databases in this window.
 	 */
 	public int getOpenDatabases () {
-		return dbObj.size();
+		if (dbObj != null)
+			return dbObj.size();
+		else 
+			return 0;
 	}
 
 	/**
@@ -201,6 +206,14 @@ public class ViewerWindow {
 				db.dispose();
 		}
 		dbObj = null;
+		
+		// always remove the registered listener
+		final ISourceProviderService service = (ISourceProviderService) winObj.getService(ISourceProviderService.class);
+		if (service != null)
+		{
+			final FilterStateProvider service_provider = (FilterStateProvider) service.getSourceProvider(FilterStateProvider.FILTER_REFRESH_PROVIDER);
+			service_provider.removeSourceProviderListener(srcProviderListener);
+		}
 	}
 	
 	public Database[] getDatabases() {
