@@ -29,10 +29,11 @@ hpctraceviewer is the presentation tool to visualize trace data generated
 by hpcrun if the flag "-t" is specified. For static linked program, the
 variable environment HPCRUN_TRACE has to be set. 
 
-The viewers contain six plug-in projects:
+The viewers contain seven plug-in projects:
 
  edu.rice.cs.hpc.common (common plugin for hpcviewer and hpctraceviewer)
  edu.rice.cs.hpc.data (hpcdata)
+ edu.rice.cs.hpc.filter (hpcfilter plugin for hpcviewer and hpctraceviewer)
  edu.rice.cs.hpc.remote (hpcremote, used currently by hpctraceviewer)
  edu.rice.cs.hpc.viewer (hpcviewer)
  edu.rice.cs.hpc.traceviewer (hpctraceviewer)
@@ -84,6 +85,7 @@ Check out the source code
 
     edu.rice.cs.hpc.common
     edu.rice.cs.hpc.data 
+    edu.rice.cs.hpc.filter
     edu.rice.cs.hpc.remote
     edu.rice.cs.hpc.viewer 
     edu.rice.cs.hpc.traceviewer 
