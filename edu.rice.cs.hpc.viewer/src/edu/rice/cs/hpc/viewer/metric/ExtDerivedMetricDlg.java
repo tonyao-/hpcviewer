@@ -605,7 +605,11 @@ public class ExtDerivedMetricDlg extends TitleAreaDialog {
 	   * Call back method when the OK button is pressed
 	   */
 	  public void okPressed() {
-		if(this.checkExpression() && this.checkFormat()) {
+		  if (cbName.getText().isEmpty()) {
+			  MessageDialog.openError(getShell(), "Error", "Metric's name cannot be empty");
+			  return;
+		  }
+		  if(this.checkExpression() && this.checkFormat()) {
 			// save the options for further usage (required by the caller)
 			doAction();
 			
@@ -614,6 +618,6 @@ public class ExtDerivedMetricDlg extends TitleAreaDialog {
 			objHistoryName.addLine( cbName.getText() );
 
 			super.okPressed();
-		}
+		  }
 	  }	
 }

@@ -150,7 +150,7 @@ public class ExperimentMerger
 		for (int i=0; i<m1.length; i++) {
 			// add metric into the merged list
 			BaseMetric mm = m1[i].duplicate();
-			addMetric(mm, i, exp, metricList);
+			addMetric(mm, i, exp, 1, metricList);
 		}
 		
 		// attention: hpcprof doesn't guarantee the ID of metric starts with zero
@@ -171,7 +171,7 @@ public class ExperimentMerger
 			final int index_new = m1_last_index + m.getIndex();
 			m.setShortName( String.valueOf(index_new) );
 			
-			addMetric(m, m1_last + i +1 , exp, metricList);
+			addMetric(m, m1_last + i +1, exp, 2, metricList);
 		}
 		
 		return metricList;
@@ -182,25 +182,24 @@ public class ExperimentMerger
 	 * Add a new metric into a metric list
 	 * 
 	 * @param source : metric to duplicate
-	 * @param index  : the new index
+	 * @param metric_index  : the new index
 	 * @param exp    : experiment to which the metric is hosted
 	 * @param metricList : the list of metrics
 	 */
-	private static void addMetric(BaseMetric source, int index, Experiment exp, List<BaseMetric> metricList)
+	private static void addMetric(BaseMetric source, int metric_index, 
+			Experiment exp, int experiment_index, List<BaseMetric> metricList)
 	{
 		// add metric into the merged list
 		BaseMetric mm = source.duplicate();
-		mm.setIndex(index);
+		mm.setIndex(metric_index);
 		// update the derived metric's experiment
 		if (mm instanceof DerivedMetric)
 		{
 			((DerivedMetric)mm).setExperiment(exp);
 		}
 		
-		setMetricCombinedName(1, mm);
-		
+		setMetricCombinedName(experiment_index, mm);
 		metricList.add(mm);
-
 	}
 	
 	/***
