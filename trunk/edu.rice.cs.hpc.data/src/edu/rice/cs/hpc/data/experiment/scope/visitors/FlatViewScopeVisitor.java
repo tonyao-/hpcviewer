@@ -422,7 +422,6 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 		{
 			if (ancestor == child) {
 				// cyclic
-				System.err.println("cycle-dependency: " + child.getFlatIndex() + " vs. " + ancestor.getFlatIndex());
 				return true;
 			}
 			ancestor = ancestor.getParentScope();
