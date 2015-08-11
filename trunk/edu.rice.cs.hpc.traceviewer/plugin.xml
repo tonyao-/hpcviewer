@@ -85,7 +85,12 @@
       <command
             defaultHandler="edu.rice.cs.hpc.traceviewer.actions.OpenDatabase"
             id="edu.rice.cs.hpc.traceviewer.openDatabase"
-            name="Open Database">
+            name="Open Local Database">
+      </command>
+      <command
+            defaultHandler="edu.rice.cs.hpc.traceviewer.actions.OpenRemoteDatabase"
+            id="edu.rice.cs.hpc.traceviewer.openRemoteDatabase"
+            name="Open Remote Database">
       </command>
       <command
       		defaultHandler="edu.rice.cs.hpc.traceviewer.actions.ResetViews"
@@ -135,11 +140,20 @@
                tooltip="File database menu">
             <command
                   commandId="edu.rice.cs.hpc.traceviewer.openDatabase"
-                  label="Open Database"
+                  label="Open Local Database"
                   mnemonic="O"
                   style="push"
                   tooltip="Open a new database (the existing database will be replaced).">
             </command>
+            <command
+                  commandId="edu.rice.cs.hpc.traceviewer.openRemoteDatabase"
+                  label="Open Remote Database"
+                  mnemonic="R"
+                  style="push">
+            </command>
+            <separator
+                  name="edu.rice.cs.hpc.traceviewer.separator1">
+            </separator>
             <command
                   commandId="org.eclipse.ui.file.exit"
                   label="Exit"

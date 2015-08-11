@@ -4,7 +4,9 @@ import java.util.HashMap;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.jface.action.IStatusLineManager;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -132,6 +134,40 @@ public class TraceDatabase
 		return openDatabase(window, statusMgr, info);
 	}
 
+	/************
+	 * static function to open a local database
+	 * 
+	 * @param window :  current active window
+	 * @param statusMgr : current status line manager
+	 * @return true if the opening is successful. False otherwise
+	 */
+	static public boolean openLocalDatabase(IWorkbenchWindow window, IStatusLineManager statusMgr)
+	{
+		DirectoryDialog dlg = new DirectoryDialog(window.getShell());
+		String directory = dlg.open();
+		
+		while (directory != null)
+		{
+			DatabaseAccessInfo info = new DatabaseAccessInfo(directory);
+			try {
+				AbstractDBOpener opener = getDBOpener(info);
+				SpaceTimeDataController stdc = opener.openDBAndCreateSTDC(window, statusMgr);
+				
+				if (processDatabase(window, statusMgr, stdc)) {
+					return true;
+				} else {
+					MessageDialog.openError(window.getShell(), "Error", "Fail to process the database:"
+							+ directory);
+				}
+			} catch (Exception e) 
+			{
+				MessageDialog.openError(window.getShell(), "Error opening database", 
+						e.getMessage());
+				directory = dlg.open();
+			}
+		}
+		return false;
+	}
 
 	/*******
 	 * Opening a database with a specific database access info {@link DatabaseAccessInfo}.
@@ -146,7 +182,6 @@ public class TraceDatabase
 			DatabaseAccessInfo info)
 	{
 		SpaceTimeDataController stdc = null;
-		TraceDatabase database = TraceDatabase.getInstance(window);
 		String message = null;
 		DatabaseAccessInfo database_info = info;
 		
@@ -169,6 +204,13 @@ public class TraceDatabase
 
 		} while (stdc == null);
 		
+		return processDatabase(window, statusMgr, stdc);
+	}
+	
+	static private boolean processDatabase(IWorkbenchWindow window, IStatusLineManager statusMgr,
+			SpaceTimeDataController stdc)
+	{
+		TraceDatabase database = TraceDatabase.getInstance(window);
 		// remove old resources
 		if (database.dataTraces != null)
 			database.dataTraces.dispose();
@@ -236,5 +278,6 @@ public class TraceDatabase
 		}
 
 		return false;
+
 	}
 }
