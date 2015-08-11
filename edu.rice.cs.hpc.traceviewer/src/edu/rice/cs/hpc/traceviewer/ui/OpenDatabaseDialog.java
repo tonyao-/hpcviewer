@@ -84,9 +84,7 @@ public class OpenDatabaseDialog extends Dialog
 
 	// the choice is either 
 	private boolean useLocalDatabase = true;
-	//private AbstractDBOpener dbOpener = null;
 	private DatabaseAccessInfo dbInfo = null;
-	//private EnumMap<DatabaseAccessInfo.DatabaseField, String> info;
 	
 	/*****
 	 * constructor with the default error message
@@ -118,22 +116,6 @@ public class OpenDatabaseDialog extends Dialog
 		this.errorMessage = errorMessage;
 	}
 	
-	
-
-	/**
-	 * This method is used to pass data from the OpenDatabaseDialog box to 
-	 * {@link TraceDatabase#openDatabase(org.eclipse.ui.IWorkbenchWindow, String[], org.eclipse.jface.action.IStatusLineManager, AbstractDBOpener)}.
-	 * It must be called on an OpenDatabaseDialog that has already been constructed AFTER calling {@link #open()}.
-	 * The type of opener it returns depends on which tab the user had open when he clicked ok
-	 * 
-	 * @author Brett Gutstein
-	 * @return a LocalDBOpener or RemoteDBOpener for use with TraceDatabase.openDatabase, null if user cancels 
-	 */
-	/*public AbstractDBOpener getDBOpener() {
-
-		return dbOpener;
-	}*/
-	
 
 	/******
 	 * Return the information to access the database (if the user clicks Ok).
@@ -147,6 +129,8 @@ public class OpenDatabaseDialog extends Dialog
 	{
 		return dbInfo;
 	}
+
+
 
 	//overridden to get ID of the ok button
 	@Override
@@ -375,12 +359,14 @@ public class OpenDatabaseDialog extends Dialog
 		outerComposite.pack();
 
 		// default selection ?
-		Activator activator = Activator.getDefault();
+/*		Activator activator = Activator.getDefault();
 		if (activator != null) {
 			ScopedPreferenceStore objPref = (ScopedPreferenceStore) activator.getPreferenceStore();
 			int select = objPref.getInt(HISTORY_SELECTION);
 			tabFolder.setSelection(select);
-		}
+		}*/
+		// default is remote database
+		tabFolder.setSelection(1);
 
 		return outerComposite;
 	}

@@ -9,7 +9,7 @@
          hpctracecviewer is a user interface for analyzing a database of   
 performance metrics in conjunction with an application&apos;s source code.
 
-hpctraceviewer is part of Rice University&apos;s HPCToolkit project.  Development of 
+hpctraceviewer is part of Rice University&apos;s HPCToolkit project.  Development of
 HPCToolkit is principally funded by the Department of Energy&apos;s Office of 
 Science as part of the SciDAC Center for Scalable Application Development
 Software and the Performance Engineering Research Institute. 

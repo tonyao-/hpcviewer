@@ -71,7 +71,7 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 		// Eclipse indigo MAC export will add -showlocation flag in front of the executable
 		// It is also possible the next version of Eclipse will add other flags
 		// Hence, we need calling open dialog box here to make sure it displays on all Eclipse versions
-		TraceDatabase.openDatabase(configurer.getWindow(), status);
+		TraceDatabase.openLocalDatabase(configurer.getWindow(), status);
 	}
 
 	/*
