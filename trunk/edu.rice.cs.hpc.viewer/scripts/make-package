@@ -64,7 +64,7 @@ for f in ../*.win32.*.tgz; do echo $f
   echo "new file: $z"
   zip -r $z $viewer/*
   ls -l $z
-  rm -rf $viewer; 
+  rm -rf $viewer $f; 
 done
 cd ..
 rmdir tmp

@@ -11,6 +11,7 @@ import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
 import edu.rice.cs.hpc.data.experiment.metric.MetricType;
 import edu.rice.cs.hpc.data.experiment.scope.RootScope;
+import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.PrintFlatViewScopeVisitor;
 
 
@@ -33,13 +34,8 @@ public class PrintFileXML {
 	 * @param experiment
 	 **--------------------------------------------------------------------------------**/
 	public void print(PrintStream objStream, Experiment experiment) {
-		Object []rootChildren = experiment.getRootScopeChildren();
-		if (rootChildren != null) {
-
-			int nbChildren = rootChildren.length;
-			
-			// flat root must be the last one
-			RootScope flatRoot = (RootScope) rootChildren[nbChildren-1];
+		RootScope flatRoot = (RootScope) experiment.getRootScope(RootScopeType.Flat);
+		if (flatRoot != null) {
 			
 			//---------------------------------------------------------------------------------
 			// print the DTD

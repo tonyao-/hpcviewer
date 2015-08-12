@@ -34,7 +34,6 @@ import edu.rice.cs.hpc.data.util.Constants;
 public class ExperimentMerger 
 {
 	static final private boolean with_raw_metrics = false;
-	static public enum MergeType {TOP_DOWN, BOTTOM_UP, FLAT};
 	
 	/**
 	 * Merging two experiments, and return the new experiment
@@ -45,8 +44,9 @@ public class ExperimentMerger
 	 * @param verbose : true if the verbose mode is on
 	 *  
 	 * @return
+	 * @throws Exception 
 	 */
-	static public Experiment merge(Experiment exp1, Experiment exp2, MergeType type, boolean verbose) {
+	static public Experiment merge(Experiment exp1, Experiment exp2, RootScopeType type, boolean verbose) throws Exception {
 		
 		File file1 = exp1.getXMLExperimentFile();
 		String parent_dir = file1.getParentFile().getParent() + File.separator + "merged" + File.separator;
@@ -63,9 +63,10 @@ public class ExperimentMerger
 	 * @param parent_dir
 	 * @param verbose
 	 * @return the new merged database
+	 * @throws Exception 
 	 */
-	static public Experiment merge(Experiment exp1, Experiment exp2, MergeType type, 
-			String parent_dir, boolean verbose) {
+	static public Experiment merge(Experiment exp1, Experiment exp2, RootScopeType type, 
+			String parent_dir, boolean verbose) throws Exception {
 		
 		// -----------------------------------------------
 		// step 1: create new base Experiment
@@ -102,31 +103,27 @@ public class ExperimentMerger
 		merged.setXMLExperimentFile( fileMerged );
 
 		// -----------------------------------------------
-		// step 4: create roots
+		// step 4: create the root for the 
 		// -----------------------------------------------		
-
-		int root_type = 0;
-		switch (type) {
-		case TOP_DOWN:
-			root_type = 0; break;
-		case BOTTOM_UP:
-			root_type = 1; break;
-		case FLAT:
-			root_type = 2; break;
+		
+		RootScope root1 = exp1.getRootScope(type);
+		if (root1 == null) {
+			throw new Exception("Unable to find root type " + type + " in " + exp1.getDefaultDirectory());
 		}
+		root1.dfsVisitScopeTree(new DuplicateScopeTreesVisitor(rootScope));
 		
-		RootScope root2 = (RootScope) exp2.getRootScopeChildren()[root_type];	
-		
+		RootScope rootMerged = (RootScope) merged.getRootScopeChildren()[0];	
+
 		// -----------------------------------------------
 		// step 5: merge the two experiments
 		// -----------------------------------------------
 
-		mergeScopeTrees(exp1,new DuplicateScopeTreesVisitor(rootScope), root_type);		
-		
-		RootScope root1 = (RootScope) merged.getRootScopeChildren()[0];	
-
+		RootScope root2 = exp2.getRootScope(type);
+		if (root2 == null) {
+			throw new Exception("Unable to find root type " + type + " in " + exp2.getDefaultDirectory());
+		}
 		final int metricCount = exp1.getMetricCount();
-		new TreeSimilarity(metricCount, root1, root2, verbose);
+		new TreeSimilarity(metricCount, rootMerged, root2, verbose);
 		
 		return merged;
 	}
@@ -202,19 +199,6 @@ public class ExperimentMerger
 		metricList.add(mm);
 	}
 	
-	/***
-	 * recursively merge trees
-	 * 
-	 * @param exp2
-	 * @param visitor
-	 */
-	private static void mergeScopeTrees(Experiment exp2, 
-			BaseDuplicateScopeTreesVisitor visitor, int iRoot) {
-
-		RootScope root2 = (RootScope) exp2.getRootScopeChildren()[iRoot];		
-
-		root2.dfsVisitScopeTree(visitor);
-	}
 	
 	/***
 	 * merge two metric raws

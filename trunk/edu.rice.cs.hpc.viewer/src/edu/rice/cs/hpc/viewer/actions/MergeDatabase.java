@@ -16,6 +16,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.merge.ExperimentMerger;
+import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 import edu.rice.cs.hpc.viewer.experiment.ExperimentView;
 import edu.rice.cs.hpc.viewer.window.ViewerWindow;
 import edu.rice.cs.hpc.viewer.window.ViewerWindowManager;
@@ -41,7 +42,7 @@ public abstract class MergeDatabase extends AbstractHandler
 	 * @return
 	 * @throws ExecutionException
 	 */
-	public Object execute(ExecutionEvent event, final ExperimentMerger.MergeType type) 
+	public Object execute(ExecutionEvent event, final RootScopeType type) 
 			throws ExecutionException {
 
 		final IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
@@ -105,10 +106,17 @@ public abstract class MergeDatabase extends AbstractHandler
 						}
 					} while (need_to_find_name);
 					
-					final Experiment expMerged = ExperimentMerger.merge(db1, db2, type, path + IPath.SEPARATOR, false);
+					Experiment expMerged;
+					try {
+						expMerged = ExperimentMerger.merge(db1, db2, type, path + IPath.SEPARATOR, false);
 
-					ExperimentView ev = new ExperimentView(window.getActivePage());
-					ev.generateView(expMerged);
+						ExperimentView ev = new ExperimentView(window.getActivePage());
+						ev.generateView(expMerged);
+					} catch (Exception e) {
+						MessageDialog.openError(window.getShell(), "Error merging database",
+								e.getMessage());
+						e.printStackTrace();
+					}
 				}				
 			});
 		}

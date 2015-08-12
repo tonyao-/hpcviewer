@@ -11,8 +11,9 @@ performance metrics in conjunction with an application&apos;s source code.
 
 hpcviewer is part of Rice University&apos;s HPCToolkit project. Development of 
 HPCToolkit is principally funded by the Department of Energy&apos;s Office of 
-Science as part of the SciDAC Center for Scalable Application Development
-Software and the Performance Engineering Research Institute.
+Science as part of the SciDAC Center for Scalable Application Development 
+Software (CScADS), the Performance Engineering Research Institute (PERI) 
+and Performance Insight For Programmers and Exascale Runtimes (PIPER).
 
 Release 5.3.2 $LastChangedRevision$ (C) Copyright 2015, Rice University.
       </text>
@@ -44,6 +45,7 @@ Release 5.3.2 $LastChangedRevision$ (C) Copyright 2015, Rice University.
             winLargeHigh="/edu.rice.cs.hpc.viewer/icons/hpcviewer-icon-48x48-32bit.bmp"/>
       </win>
    </launcher>
+
 
    <vm>
    </vm>
