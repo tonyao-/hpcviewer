@@ -112,18 +112,8 @@ public abstract class BaseExperiment implements IExperiment
 	 * @return root scope
 	 */
 	public RootScope getCallerTreeRoot() {
-		RootScope root = (RootScope) getRootScope();
-		if (root.getSubscopeCount()==3) {
-			
-			Scope scope = root.getSubscope(1);
-			if (scope instanceof RootScope)
-				return (RootScope) scope;
-			
-		}
-		return null;
+		return getRootScope(RootScopeType.CallerTree);
 	}
-
-	
 
 	public Object[] getRootScopeChildren() {
 		RootScope root = (RootScope) getRootScope();
@@ -134,6 +124,23 @@ public abstract class BaseExperiment implements IExperiment
 			return null;
 	}
 	
+	/****
+	 * Retrieve the root scope of this experiment based on the root type
+	 * (cct, callers tree or flat tree)
+	 * 
+	 * @param type : RootScopeType, type of the root
+	 * @return the root scope if the type is found, <code>null</code> otherwise
+	 */
+	public RootScope getRootScope(RootScopeType type)
+	{
+		RootScope root = (RootScope) getRootScope();
+		for (int i=0; i<root.getChildCount(); i++)
+		{
+			if (((RootScope)root.getChildAt(i)).getType() == type)
+				return (RootScope) root.getChildAt(i);
+		}
+		return null;
+	}
 	
 	/****
 	 * open a local database
@@ -202,6 +209,11 @@ public abstract class BaseExperiment implements IExperiment
 		return configuration.getName(ExperimentConfiguration.NAME_EXPERIMENT);
 	}
 
+	@Override
+	public String toString()
+	{
+		return getName();
+	}
 
 	/*************************************************************************
 	 *	Sets the experiment's configuration.

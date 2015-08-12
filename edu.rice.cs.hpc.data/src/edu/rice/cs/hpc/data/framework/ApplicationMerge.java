@@ -4,6 +4,7 @@ import java.io.File;
 
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.merge.ExperimentMerger;
+import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 
 public class ApplicationMerge {
 
@@ -49,9 +50,11 @@ public class ApplicationMerge {
 			System.err.println("Cannot open database: " + args[1]);
 		}
 	
-		Experiment merge = ExperimentMerger.merge(exp1, exp2, ExperimentMerger.MergeType.TOP_DOWN, true);
-		if (merge == null) {
+		try {
+			Experiment merge = ExperimentMerger.merge(exp1, exp2, RootScopeType.CallingContextTree, true);
+		} catch (Exception e) {
 			System.err.println("Fail to merge");
+			e.printStackTrace();
 		}
 	}
 
